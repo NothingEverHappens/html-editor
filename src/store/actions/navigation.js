@@ -1,12 +1,15 @@
+import {findCurrentNode, getFirstExisting} from "@/store/helpers";
+
 export const navigationEditorActions = [
     {
         key: 'goChild',
         shortcut: 'ArrowRight',
         handler(state) {
-            const currentNode = state.nodes[state.selectedNodeKey];
+            const node = findCurrentNode(state);
 
-            if (currentNode.firstChild) {
-                state.selectedNodeKey = currentNode.firstChild;
+            const parentId = node.children().attr('id');
+            if (parentId) {
+                state.selectedNodeKey = parentId;
             }
         }
     },
@@ -14,10 +17,11 @@ export const navigationEditorActions = [
         key: 'goParent',
         shortcut: 'ArrowLeft',
         handler(state) {
-            const currentNode = state.nodes[state.selectedNodeKey];
+            const node = findCurrentNode(state);
 
-            if (currentNode.parent) {
-                state.selectedNodeKey = currentNode.parent;
+            const parentId = node.parent().attr('id');
+            if (parentId) {
+                state.selectedNodeKey = parentId;
             }
         }
     },
@@ -25,27 +29,17 @@ export const navigationEditorActions = [
         key: 'goNext',
         shortcut: 'ArrowDown',
         handler(state) {
-            const currentNode = state.nodes[state.selectedNodeKey];
+            const node = findCurrentNode(state);
 
-            if (currentNode.firstChild) {
-                state.selectedNodeKey = currentNode.firstChild;
-                return;
-            }
+            const nextId = getFirstExisting(
+                node.children(),
+                node.next(),
+                node.parents().filter((_, el) => el.nextSibling).next(),
+            ).attr('id');
 
-            if (currentNode.nextSibling) {
-                state.selectedNodeKey = currentNode.nextSibling;
-                return;
-            }
 
-            let key = state.selectedNodeKey;
-
-            while (key) {
-                const node = state.nodes[key];
-                key = node.parent;
-                if (node.nextSibling) {
-                    state.selectedNodeKey = node.nextSibling;
-                    return;
-                }
+            if (nextId) {
+                state.selectedNodeKey = nextId;
             }
         }
     },
@@ -53,21 +47,17 @@ export const navigationEditorActions = [
         key: 'goPrevious',
         shortcut: 'ArrowUp',
         handler(state) {
-            const currentNode = state.nodes[state.selectedNodeKey];
-            if (currentNode.previousSibling) {
-                state.selectedNodeKey = currentNode.previousSibling;
+            const node = findCurrentNode(state);
 
-                let key = currentNode.previousSibling;
+            const prevId = getFirstExisting(
+                node.prev().filter(':parent').find('*').last(),
+                node.prev(),
+                node.parent()
+            ).attr('id');
 
-                while (key) {
-                    const node = state.nodes[key];
-                    state.selectedNodeKey = key;
-                    key = node.lastChild;
-                }
-                return;
+            if (prevId) {
+                state.selectedNodeKey = prevId;
             }
-
-            this.commit('goParent');
         }
     }
 ];

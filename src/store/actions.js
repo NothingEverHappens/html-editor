@@ -13,19 +13,21 @@ export class Actions {
         actions.forEach(a => this.addAction(a))
     }
 
-    getActions(){
+    getActions() {
         return this.actions;
     }
 
-    getActionsHandlers(){
-        return this.actions.reduce((result, a)=>{
-            result[a.key] = a.handler;
+    getActionsHandlers() {
+        return this.actions.reduce((result, a) => {
+            result[a.key] = (state, ...rest) => {
+                a.handler(state, ...rest)
+            };
             return result;
         }, {})
     }
 
-    getActionsNames(){
-        return this.actions.map(a=>a.key);
+    getActionsNames() {
+        return this.actions.map(a => a.key);
     }
 }
 

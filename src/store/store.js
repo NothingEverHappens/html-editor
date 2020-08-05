@@ -1,21 +1,13 @@
 import Vuex from 'vuex';
-import {foldNode} from "@/store/tree";
 import {editorActions} from "@/store/actions";
-import {createNode} from "@/store/helpers";
 
-
+import $ from 'jquery';
+import {importNode} from "@/store/helpers";
 
 function getInitialState() {
-    const key = 'root';
-
     return {
-        nodes: {
-            [key]: createNode({
-                key,
-                tag: 'root',
-            }),
-        },
-        selectedNodeKey: key,
+        node: '<root id = root>',
+        selectedNodeKey: 'root',
         mode: 'node',
     }
 }
@@ -28,7 +20,7 @@ export function getStore() {
         },
         getters: {
             tree(state) {
-                return foldNode(state.nodes['root'], state.nodes, state.selectedNodeKey);
+                return importNode($(state.node)[0], state.selectedNodeKey);
             }
         }
     });

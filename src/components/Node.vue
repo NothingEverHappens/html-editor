@@ -7,7 +7,7 @@
 
     <span class="element-wrapper">
       <span class="tag" :class="{selected: node.selected}">
-        {{node.tag}}#{{node.key}}
+        {{node.tagName}}#{{node.id}}
       </span>
       <span v-for="attribute of node.attributes" :key="attribute.name" class="attribute">
         <span>{{attribute.name}}</span>
