@@ -2,6 +2,10 @@ import $ from "jquery";
 
 let key = 0;
 
+export const modes = {
+    NORMAL: 'NORMAL',
+    SELECT_TAG_NAME: 'SELECT_TAG_NAME',
+};
 export function uniqueKey() {
     return 'id_' + key++;
 }
@@ -12,6 +16,7 @@ export function createNode(attrs={}) {
     for (const [key, value] in Object.entries(attrs)) {
         node.setAttribute(key, value);
     }
+
     if(!node.id){
         node.id = uniqueKey();
     }

@@ -1,7 +1,8 @@
 <template>
   <div>
     <div v-for="action of actions" :key="action.key" @click="trigger(action)">
-      {{action.key}}
+      <span class="shortcut">{{action.displayShortcut}}</span>
+      <span class="action">{{action.key}}</span>
     </div>
   </div>
 </template>
@@ -14,11 +15,11 @@
     // TODO(kirjs): This shouldn't be a component
     export default {
         name: "Shortcuts",
-
-
         computed: {
-            ...mapGetters(['tree']),
-            actions: () => editorActions.getActions()
+            ...mapGetters(['tree', 'state']),
+            actions() {
+                return editorActions.getActions(this.state);
+            }
         },
         methods: {
             ...mapMutations(['executeAction']),
@@ -28,7 +29,14 @@
         },
         mounted() {
             this._keyListener = function (e) {
-                const action = this.actions.find(a => a.shortcut === e.key);
+                const action = this.actions.find(a => {
+                    if (typeof a.shortcut === 'string') {
+                        return a.shortcut === e.key;
+                    }
+                    if (Array.isArray(a.shortcut)) {
+                        return a.shortcut.includes(e.key);
+                    }
+                });
 
                 if (action) {
                     this.trigger(action);
@@ -47,5 +55,14 @@
 </script>
 
 <style scoped>
-
+  .shortcut {
+    padding: 4px;
+    background: aliceblue;
+    width: 20px;
+    border: 1px rgba(11, 152, 184, 0.38) solid;
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 4px;
+    text-align: center;
+  }
 </style>

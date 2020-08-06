@@ -1,9 +1,12 @@
-import {createNode, findCurrentNode, findRootNode, uniqueKey} from "@/store/helpers";
+import {createNode, findCurrentNode, findRootNode, modes, uniqueKey} from "@/store/helpers";
 
 export const nodeManipulationEditorActions = [
     {
         key: 'wrap',
         shortcut: 'w',
+        displayPredicate(state, utils) {
+            return !utils.isRoot()
+        },
         handler(state) {
             const node = findCurrentNode(state);
             node.wrap(createNode());
@@ -32,9 +35,10 @@ export const nodeManipulationEditorActions = [
     },
     {
         key: 'updateTagName',
-        shortcut: 'a',
+        shortcut: 'u',
         handler(state, utils) {
-            utils.updateTagName(utils);
+            state.mode = modes.SELECT_TAG_NAME;
+            //utils.updateTagName(utils);
         }
     },
     {

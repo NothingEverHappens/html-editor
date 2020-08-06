@@ -1,14 +1,14 @@
 import Vuex from 'vuex';
 
 import $ from 'jquery';
-import {importNode} from "@/store/helpers";
+import {importNode, modes} from "@/store/helpers";
 import {editorActions} from "@/store/actions";
 
 function getInitialState() {
     return {
         node: '<root id = root>',
         selectedNodeKey: 'root',
-        mode: 'node',
+        mode: modes.NORMAL,
     }
 }
 
@@ -23,6 +23,9 @@ export function getStore() {
         getters: {
             tree(state) {
                 return importNode($(state.node)[0], state.selectedNodeKey);
+            },
+            state(state) {
+                return state;
             }
         }
     });

@@ -3,7 +3,7 @@ import {findCurrentNode, getFirstExisting} from "@/store/helpers";
 export const navigationEditorActions = [
     {
         key: 'goChild',
-        shortcut: 'ArrowRight',
+        shortcut: ['ArrowRight', 'l'],
         handler(state) {
             const node = findCurrentNode(state);
 
@@ -15,7 +15,7 @@ export const navigationEditorActions = [
     },
     {
         key: 'goParent',
-        shortcut: 'ArrowLeft',
+        shortcut: ['ArrowLeft', 'h'],
         handler(state) {
             const node = findCurrentNode(state);
 
@@ -27,14 +27,14 @@ export const navigationEditorActions = [
     },
     {
         key: 'goNext',
-        shortcut: 'ArrowDown',
+        shortcut: ['ArrowDown', 'j'],
         handler(state, utils) {
             utils.goNext();
         }
     },
     {
         key: 'goPrevious',
-        shortcut: 'ArrowUp',
+        shortcut: ['ArrowUp', 'k'],
         handler(state, utils) {
             utils.goPrevious();
         }
