@@ -18,24 +18,26 @@
             ...mapGetters(['tree'])
         },
         methods: {
-            ...mapMutations(['addChild', 'goChild', 'goNext', 'setAttribute', 'updateTagName'])
+            ...mapMutations(['executeAction'])
         },
         components: {Node, Shortcuts,},
         created() {
-            this.addChild({tag: 'div'});
-            this.addChild({tag: 'span'});
-            this.addChild({tag: 'span'});
-            this.addChild({tag: 'span'});
-            this.addChild({tag: 'span'});
-            this.goChild();
-            this.goNext();
-            this.addChild({tag: 'div'});
-            this.addChild({tag: 'div'});
-            this.addChild({tag: 'div'});
-            this.goNext();
-            this.goNext();
-            this.setAttribute();
-            this.updateTagName('a');
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'span'});
+            this.executeAction({type: 'goChild'});
+            this.executeAction({type: 'goNext'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'addChild',tag: 'div'});
+            this.executeAction({type: 'goNext'});
+            this.executeAction({type: 'goNext'});
+            this.executeAction({type: 'updateTagName'});
+
+            // this.setAttribute();
+            // this.updateTagName('a');
         }
     }
 </script>

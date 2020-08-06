@@ -4,7 +4,7 @@ export const nodeManipulationEditorActions = [
     {
         key: 'wrap',
         shortcut: 'w',
-        handler(state, value = {}) {
+        handler(state) {
             const node = findCurrentNode(state);
             node.wrap(createNode());
             state.node = findRootNode(node)[0].outerHTML;
@@ -13,7 +13,7 @@ export const nodeManipulationEditorActions = [
     {
         key: 'addChild',
         shortcut: 'd',
-        handler(state, value = {}) {
+        handler(state) {
             const el = document.createElement('div');
             el.setAttribute('id', uniqueKey());
 
@@ -25,7 +25,7 @@ export const nodeManipulationEditorActions = [
     {
         key: 'setAttribute',
         shortcut: 'a',
-        handler(state) {
+        handler() {
 
 
         }
@@ -33,26 +33,30 @@ export const nodeManipulationEditorActions = [
     {
         key: 'updateTagName',
         shortcut: 'a',
-        handler(state, tag) {
-
+        handler(state, utils) {
+            utils.updateTagName(utils);
         }
     },
     {
         key: 'deleteNode',
         shortcut: 'Backspace',
-        handler(state) {
+        handler(state, utils) {
             const node = findCurrentNode(state);
 
             if (node.attr('id') === 'root') {
                 return;
             }
 
+            if (utils.hasNextSibling()) {
+                utils.goNextSibling();
+            } else {
+                utils.goPrevious();
+            }
+
             const parent = node.parent();
             node.remove();
-
 
             state.node = findRootNode(parent)[0].outerHTML;
         }
     },
-
 ];

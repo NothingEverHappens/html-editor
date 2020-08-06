@@ -28,36 +28,15 @@ export const navigationEditorActions = [
     {
         key: 'goNext',
         shortcut: 'ArrowDown',
-        handler(state) {
-            const node = findCurrentNode(state);
-
-            const nextId = getFirstExisting(
-                node.children(),
-                node.next(),
-                node.parents().filter((_, el) => el.nextSibling).next(),
-            ).attr('id');
-
-
-            if (nextId) {
-                state.selectedNodeKey = nextId;
-            }
+        handler(state, utils) {
+            utils.goNext();
         }
     },
     {
         key: 'goPrevious',
         shortcut: 'ArrowUp',
-        handler(state) {
-            const node = findCurrentNode(state);
-
-            const prevId = getFirstExisting(
-                node.prev().filter(':parent').find('*').last(),
-                node.prev(),
-                node.parent()
-            ).attr('id');
-
-            if (prevId) {
-                state.selectedNodeKey = prevId;
-            }
+        handler(state, utils) {
+            utils.goPrevious();
         }
     }
 ];

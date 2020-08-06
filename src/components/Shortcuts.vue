@@ -15,19 +15,20 @@
     export default {
         name: "Shortcuts",
 
+
         computed: {
             ...mapGetters(['tree']),
             actions: () => editorActions.getActions()
         },
         methods: {
-            ...mapMutations(editorActions.getActionsNames()),
-            trigger(action){
-                this[action.key].call(this)
+            ...mapMutations(['executeAction']),
+            trigger(action) {
+                this.executeAction({type: action.key})
             }
         },
         mounted() {
             this._keyListener = function (e) {
-                const action = this.actions.find(a=>a.shortcut === e.key);
+                const action = this.actions.find(a => a.shortcut === e.key);
 
                 if (action) {
                     this.trigger(action);

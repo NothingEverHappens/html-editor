@@ -1,6 +1,7 @@
 import {navigationEditorActions} from "@/store/actions/navigation";
 import {nodeManipulationEditorActions} from "@/store/actions/nodeManipulation";
 import {foldingEditorActions} from "@/store/actions/folding";
+import {DomUtils} from "@/store/utils";
 
 export class Actions {
     actions = [];
@@ -11,6 +12,17 @@ export class Actions {
 
     addActions(actions) {
         actions.forEach(a => this.addAction(a))
+    }
+
+    execute(action, state){
+        const utils = new DomUtils(state);
+        const a = this.actions.find(a => a.key === action.type);
+
+        if(!a){
+            throw new Error('action does not exist: ' + action.type);
+        }
+
+        a.handler.call(this, state, utils);
     }
 
     getActions() {

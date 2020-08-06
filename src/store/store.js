@@ -1,8 +1,8 @@
 import Vuex from 'vuex';
-import {editorActions} from "@/store/actions";
 
 import $ from 'jquery';
 import {importNode} from "@/store/helpers";
+import {editorActions} from "@/store/actions";
 
 function getInitialState() {
     return {
@@ -16,7 +16,9 @@ export function getStore() {
     return new Vuex.Store({
         state: getInitialState(),
         mutations: {
-            ...editorActions.getActionsHandlers(),
+            executeAction(state, action) {
+                editorActions.execute(action, state);
+            }
         },
         getters: {
             tree(state) {
