@@ -1,12 +1,12 @@
-import {createNode, findCurrentNode, findRootNode, modes, uniqueKey} from "@/store/helpers";
+import {createNode, findCurrentNode, findRootNode} from "@/store/helpers";
+import {modes} from "@/store/utils/modes";
+import {predicates} from "@/store/predicates";
 
 export const nodeManipulationEditorActions = [
     {
         key: 'wrap',
         shortcut: 'w',
-        displayPredicate(state, utils) {
-            return !utils.isRoot()
-        },
+        displayPredicate: predicates.isNotRoot,
         handler(state) {
             const node = findCurrentNode(state);
             node.wrap(createNode());
@@ -16,31 +16,104 @@ export const nodeManipulationEditorActions = [
     {
         key: 'addChild',
         shortcut: 'd',
-        handler(state) {
-            const el = document.createElement('div');
-            el.setAttribute('id', uniqueKey());
-
-            let root = findCurrentNode(state).append(el);
-
-            state.node = findRootNode(root)[0].outerHTML;
+        displayPredicate: predicates.not(predicates.isText),
+        handler(state, utils) {
+            utils.addChild(state);
+        }
+    }, {
+        displayPredicate: predicates.not(predicates.isText),
+        key: 'addTextNode',
+        shortcut: 't',
+        async handler(state, utils) {
+            const text =  await utils.input.getText();
+            utils.addTextChild(text);
         }
     },
     {
+        displayPredicate: predicates.not(predicates.isText),
+        key: 'addChildAndFocus',
+        shortcut: 'D',
+        handler(state, utils) {
+            utils.addChild(state, true);
+        }
+    },
+
+    {
         key: 'setAttribute',
+        displayPredicate: predicates.not(predicates.isText),
         shortcut: 'a',
         handler() {
-
-
         }
     },
     {
         key: 'updateTagName',
+        displayPredicate: predicates.not(predicates.isText),
         shortcut: 'u',
         handler(state, utils) {
-            state.mode = modes.SELECT_TAG_NAME;
-            //utils.updateTagName(utils);
+            utils.modes.setMode(modes.SELECT_TAG_NAME)
         }
     },
+    {
+        key: 'updateContent',
+        shortcut: 'c',
+        displayPredicate: predicates.isText,
+        async handler(state, utils) {
+
+            const text =  await utils.input.getText(utils.getText());
+            utils.setText(text);
+        }
+    },
+    {
+        generator(state) {
+            function handler(state, utils) {
+                console.assert(typeof state.modeArg === 'function');
+                state.modeArg(state.filter);
+                utils.modes.setMode(modes.NORMAL);
+            }
+
+            return {
+                key: state.filter,
+                shortcut: 'Enter',
+                mode: modes.UPDATE_CONTENT,
+                handler
+            };
+
+        }
+    },
+    {
+        generator(state) {
+            const tags = ['SPAN', 'DIV', 'HEADER', 'INPUT'];
+
+            function handler(state, utils) {
+                utils.updateTagName(this.key);
+                state.mode = modes.NORMAL;
+                state.inputFocused = false;
+                state.filter = '';
+            }
+
+            const result = tags.map((key, shortcut) => {
+                    return {
+                        key,
+                        shortcut: '^' + shortcut.toString(),
+                        mode: modes.SELECT_TAG_NAME,
+                        handler
+                    };
+                }
+            );
+
+            if (state.filter) {
+                result.push({
+                    key: state.filter,
+                    shortcut: 'Enter',
+                    mode: modes.SELECT_TAG_NAME,
+                    handler
+                });
+            }
+
+            return result;
+        }
+    },
+
     {
         key: 'deleteNode',
         shortcut: 'Backspace',

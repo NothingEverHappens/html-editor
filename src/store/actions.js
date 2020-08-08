@@ -1,8 +1,9 @@
 import {navigationEditorActions} from "@/store/actions/navigation";
 import {nodeManipulationEditorActions} from "@/store/actions/nodeManipulation";
 import {foldingEditorActions} from "@/store/actions/folding";
-import {DomUtils} from "@/store/domUtils";
-import {modes} from "@/store/helpers";
+import {EditorUtils} from "@/store/utils/utils";
+import {metaEditorActions} from "@/store/actions/meta";
+import {modes} from "@/store/utils/modes";
 
 function getDisplayShortcut(shortcut) {
     const map = {
@@ -11,10 +12,14 @@ function getDisplayShortcut(shortcut) {
         ArrowDown: '⬇',
         ArrowUp: '⬆',
         Backspace: '⌫',
+        Escape: '⎋',
+        Enter: '↩',
     };
+
     if (Array.isArray(shortcut)) {
         shortcut = shortcut[0]
     }
+
     return map[shortcut] || shortcut;
 }
 
@@ -30,46 +35,37 @@ export class Actions {
     }
 
     execute(action, state) {
-        const utils = new DomUtils(state);
-        const a = this.actions.find(a => a.key === action.type);
+        const utils = new EditorUtils(state);
+        const a = this.getActions(state).find(a => a.key === action.type);
 
         if (!a) {
             throw new Error('action does not exist: ' + action.type);
         }
 
-        a.handler.call(this, state, utils);
+        console.assert(a.handler, 'action ' + a.key + ' is missing a handler');
+
+        a.handler.call(a, state, utils);
     }
 
-    getActions(state) {
-        console.log(state.mode);
-
-        return this.actions.map(a => {
+    getActions(state, filter) {
+        return this.actions.flatMap(a => {
             if (typeof a.generator === 'function') {
-                return (a.generator(state));
+                return (a.generator(state, filter));
             }
+            return a;
+        }).map(a => {
             return {displayShortcut: getDisplayShortcut(a.shortcut), ...a};
-        }).flat()
+        })
+            .filter(a=>{
+                return !filter || a.key.toLowerCase().includes(filter.toLocaleString());
+            })
             .filter(a => {
                 const matchesPredicate = typeof a.displayPredicate !== 'function' ||
-                    a.displayPredicate(state, new DomUtils(state));
+                    a.displayPredicate(state, new EditorUtils(state));
 
-                const matchesMode = (a.mode || modes.NORMAL) === state.mode;
+                const matchesMode = a.mode === '*' || (a.mode || modes.NORMAL) === state.mode;
                 return matchesPredicate && matchesMode;
-
             });
-    }
-
-    getActionsHandlers() {
-        return this.actions.reduce((result, a) => {
-            result[a.key] = (state, ...rest) => {
-                a.handler(state, ...rest)
-            };
-            return result;
-        }, {})
-    }
-
-    getActionsNames() {
-        return this.actions.map(a => a.key);
     }
 }
 
@@ -78,4 +74,5 @@ export const editorActions = new Actions();
 editorActions.addActions(navigationEditorActions);
 editorActions.addActions(nodeManipulationEditorActions);
 editorActions.addActions(foldingEditorActions);
+editorActions.addActions(metaEditorActions);
 

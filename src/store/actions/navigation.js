@@ -1,21 +1,19 @@
-import {findCurrentNode, getFirstExisting} from "@/store/helpers";
+import {findCurrentNode} from "@/store/helpers";
+import {predicates} from "@/store/predicates";
 
 export const navigationEditorActions = [
     {
+        displayPredicate: predicates.not(predicates.isText),
         key: 'goChild',
         shortcut: ['ArrowRight', 'l'],
-        handler(state) {
-            const node = findCurrentNode(state);
-
-            const parentId = node.children().attr('id');
-            if (parentId) {
-                state.selectedNodeKey = parentId;
-            }
+        handler(state, utils) {
+            utils.goChild();
         }
     },
     {
         key: 'goParent',
         shortcut: ['ArrowLeft', 'h'],
+        displayPredicate: predicates.not(predicates.isRoot),
         handler(state) {
             const node = findCurrentNode(state);
 

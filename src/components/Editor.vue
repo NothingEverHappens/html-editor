@@ -34,7 +34,7 @@
             this.executeAction({type: 'addChild',tag: 'div'});
             this.executeAction({type: 'goNext'});
             this.executeAction({type: 'goNext'});
-            this.executeAction({type: 'updateTagName'});
+            //this.executeAction({type: 'updateTagName'});
 
             // this.setAttribute();
             // this.updateTagName('a');
