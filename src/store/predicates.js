@@ -14,5 +14,8 @@ export const predicates = {
     and(predicate, predicate2) {
         return (utils) => predicate(utils) && predicate2(utils)
     },
+    isMode(mode) {
+        return (utils) => utils.modes.is(mode);
+    }
 
 };

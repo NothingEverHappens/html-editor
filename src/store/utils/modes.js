@@ -19,15 +19,19 @@ export class EditorModes {
     setMode(mode, modeArg) {
         this.state.mode = mode;
         this.state.inputFocused = mode.focus;
-        if(mode.filter !== undefined){
+        if (mode.filter !== undefined) {
             this.state.filter = mode.filter;
         }
         // TODO: There should be a better way?
         this.state.modeArg = modeArg;
     }
 
-    getConfig(){
+    getConfig() {
         return this.state.modeArg;
+    }
+
+    is(mode) {
+        return this.state.mode === mode;
     }
 
 }

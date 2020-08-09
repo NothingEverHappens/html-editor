@@ -1,15 +1,14 @@
 import {modes} from "@/store/utils/modes";
+import {predicates} from "@/store/predicates";
 
 export const metaEditorActions = [
     {
         key: 'Back to normal mode',
         mode: '*',
-        displayPredicate(state) {
-            return state.mode !== modes.NORMAL;
-        },
+        displayPredicate: predicates.not(predicates.isMode(modes.NORMAL)),
         shortcut: 'Escape',
-        handler(state) {
-            state.mode = modes.NORMAL;
+        handler(utils) {
+            utils.modes.setMode(modes.NORMAL);
         }
     },
 
