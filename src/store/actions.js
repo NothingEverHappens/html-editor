@@ -45,20 +45,21 @@ export class Actions {
 
         console.assert(a.handler, 'action ' + a.key + ' is missing a handler');
 
-        a.handler.call(a, state, utils);
+        a.handler.call(a, utils);
     }
 
     getActions(state, filter) {
+        const utils = new EditorUtils(state);
         return this.actions.flatMap(a => {
             if (typeof a.generator === 'function') {
-                return (a.generator(state, filter));
+                return (a.generator(utils, filter));
             }
             return a;
         }).map(a => {
             return {
                 displayShortcut: getDisplayShortcut(a.shortcut),
                 ...a,
-                key: typeof a.key === 'function' ? a.key(state) : a.key,
+                key: typeof a.key === 'function' ? a.key(utils) : a.key,
             };
         })
             .filter(a => {
@@ -66,7 +67,7 @@ export class Actions {
             })
             .filter(a => {
                 const matchesPredicate = typeof a.displayPredicate !== 'function' ||
-                    a.displayPredicate(state, new EditorUtils(state));
+                    a.displayPredicate(utils);
 
                 const matchesMode = a.mode === '*' || (a.mode || modes.NORMAL) === state.mode;
                 return matchesPredicate && matchesMode;

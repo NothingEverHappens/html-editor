@@ -2,7 +2,7 @@ export const foldingEditorActions = [
     {
         key: 'fold',
         shortcut: 'f',
-        handler(state, utils) {
+        handler(utils) {
             utils.attrs.flipAttr('data-editor-meta-folded');
         }
     },

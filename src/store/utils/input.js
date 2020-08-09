@@ -7,6 +7,10 @@ export class EditorInput {
         this.utils = utils;
     }
 
+    get value() {
+        return this.state.filter;
+    }
+
     getText(defaultValue = '', options) {
         return new Promise((resolve) => {
                 const mode = this.state.mode;

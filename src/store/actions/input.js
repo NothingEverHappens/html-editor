@@ -4,16 +4,18 @@ import {predicates} from "@/store/predicates";
 export const inputActions = [
     {
         mode: modes.UPDATE_CONTENT,
-        generator(state) {
-            if (!state.modeArg?.options) {
+        generator(utils) {
+            const config = utils.modes.getConfig();
+
+            if (!config?.options) {
                 return [];
             }
 
-            function handler(state) {
-                state.modeArg.callback(this.key);
+            function handler() {
+                config.callback(this.key);
             }
 
-            return state.modeArg.options.map((option, shortcut) => {
+            return config.options.map((option, shortcut) => {
                     return {
                         key: option.key,
                         meta: 'used ' + option.used + ' times',
@@ -30,9 +32,10 @@ export const inputActions = [
         displayPredicate: predicates.hasFilter,
         shortcut: 'Enter',
         mode: modes.UPDATE_CONTENT,
-        handler(state, utils) {
-            console.assert(typeof state.modeArg.callback === 'function');
-            state.modeArg.callback(state.filter);
+        handler(utils) {
+            const config = utils.modes.getConfig();
+            console.assert(typeof config.callback === 'function');
+            config.callback(utils.input.value);
             utils.modes.setMode(modes.NORMAL);
         }
     }

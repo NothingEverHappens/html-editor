@@ -5,7 +5,7 @@ export const navigationEditorActions = [
         displayPredicate: predicates.not(predicates.isText),
         key: 'goChild',
         shortcut: ['ArrowRight', 'l'],
-        handler(state, utils) {
+        handler(utils) {
             utils.goChild();
         }
     },
@@ -13,21 +13,21 @@ export const navigationEditorActions = [
         key: 'goParent',
         shortcut: ['ArrowLeft', 'h'],
         displayPredicate: predicates.not(predicates.isRoot),
-        handler(state, utils) {
+        handler(utils) {
             utils.goParent();
         }
     },
     {
         key: 'goNext',
         shortcut: ['ArrowDown', 'j'],
-        handler(state, utils) {
+        handler(utils) {
             utils.goNext();
         }
     },
     {
         key: 'goPrevious',
         shortcut: ['ArrowUp', 'k'],
-        handler(state, utils) {
+        handler(utils) {
             utils.goPrevious();
         }
     }

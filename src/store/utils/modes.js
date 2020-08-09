@@ -26,4 +26,8 @@ export class EditorModes {
         this.state.modeArg = modeArg;
     }
 
+    getConfig(){
+        return this.state.modeArg;
+    }
+
 }

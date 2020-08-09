@@ -1,18 +1,18 @@
 export const predicates = {
-    isRoot(state, utils) {
+    isRoot(utils) {
         return utils.isRoot()
     },
-    isText(state, utils) {
+    isText(utils) {
         return utils.isText()
     },
     hasFilter(state) {
         return state.filter !== '';
     },
     not(predicate) {
-        return (state, utils) => !predicate(state, utils);
+        return (utils) => !predicate(utils);
     },
     and(predicate, predicate2) {
-        return (state, utils) => predicate(state, utils) && predicate2(state, utils)
+        return (utils) => predicate(utils) && predicate2(utils)
     },
 
 };
