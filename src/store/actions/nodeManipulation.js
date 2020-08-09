@@ -40,8 +40,8 @@ export const nodeManipulationEditorActions = [
         displayPredicate: predicates.not(predicates.isText),
         shortcut: 'a',
         async handler(utils) {
-            const attributeName = await utils.input.getText('', utils.stats.getTagNames());
-            const attributeValue = await utils.input.getText('', utils.stats.getTagNames());
+            const attributeName = await utils.input.getText('', utils.stats.getByKey('attributeName'));
+            const attributeValue = await utils.input.getText('', utils.stats.getByKey('attributeValue', attributeName));
             utils.attributes.setAttribute(attributeName, attributeValue);
         }
     },

@@ -1,11 +1,11 @@
-import {modes} from "@/store/utils/modes";
+import {mode} from "@/store/utils/mode";
 import {predicates} from "@/store/predicates";
 
 export const inputActions = [
     {
-        mode: modes.UPDATE_CONTENT,
+        mode: mode.UPDATE_CONTENT,
         generator(utils) {
-            const config = utils.modes.getConfig();
+            const config = utils.mode.getConfig();
 
             if (!config?.options) {
                 return [];
@@ -20,7 +20,7 @@ export const inputActions = [
                         key: option.key,
                         meta: 'used ' + option.used + ' times',
                         shortcut: '^' + shortcut.toString(),
-                        mode: modes.UPDATE_CONTENT,
+                        mode: mode.UPDATE_CONTENT,
                         handler
                     };
                 }
@@ -28,15 +28,15 @@ export const inputActions = [
         }
     },
     {
-        key: (state) => state.filter,
+        key: (utils) => utils.input.value,
         displayPredicate: predicates.hasFilter,
         shortcut: 'Enter',
-        mode: modes.UPDATE_CONTENT,
+        mode: mode.UPDATE_CONTENT,
         handler(utils) {
-            const config = utils.modes.getConfig();
+            const config = utils.mode.getConfig();
             console.assert(typeof config.callback === 'function');
             config.callback(utils.input.value);
-            utils.modes.setMode(modes.NORMAL);
+            utils.mode.setMode(mode.NORMAL);
         }
     }
 ];

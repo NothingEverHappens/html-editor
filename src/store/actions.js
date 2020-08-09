@@ -3,7 +3,7 @@ import {nodeManipulationEditorActions} from "@/store/actions/nodeManipulation";
 import {foldingEditorActions} from "@/store/actions/folding";
 import {EditorUtils} from "@/store/utils/utils";
 import {metaEditorActions} from "@/store/actions/meta";
-import {modes} from "@/store/utils/modes";
+import {mode} from "@/store/utils/mode";
 import {inputActions} from "@/store/actions/input";
 
 function getDisplayShortcut(shortcut) {
@@ -69,7 +69,7 @@ export class Actions {
                 const matchesPredicate = typeof a.displayPredicate !== 'function' ||
                     a.displayPredicate(utils);
 
-                const matchesMode = a.mode === '*' || (a.mode || modes.NORMAL) === state.mode;
+                const matchesMode = a.mode === '*' || (a.mode || mode.NORMAL) === state.mode;
                 return matchesPredicate && matchesMode;
             });
     }

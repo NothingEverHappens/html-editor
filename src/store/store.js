@@ -4,13 +4,13 @@ import $ from 'jquery';
 import {cleanUpHtml, importNode} from "@/store/helpers";
 import {editorActions} from "@/store/actions";
 import {getField, updateField} from 'vuex-map-fields';
-import {modes} from "@/store/utils/modes";
+import {mode} from "@/store/utils/mode";
 
 function getInitialState() {
     return {
         node: '<root id = root>',
         selectedNodeKey: 'root',
-        mode: modes.NORMAL,
+        mode: mode.NORMAL,
         inputFocused: false,
         modeArg: {},
         filter: '',

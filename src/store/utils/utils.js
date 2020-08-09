@@ -1,16 +1,18 @@
 import {findRootNode, getFirstExisting, uniqueKey} from "@/store/helpers";
 import $ from 'jquery';
-import {EditorModes} from "@/store/utils/modes";
+import {EditorModes} from "@/store/utils/mode";
 import {EditorInput} from "@/store/utils/input";
 import {EditorStats} from "@/store/utils/stats";
+import {EditorAttributes} from "@/store/utils/attributes";
 
 
 export class EditorUtils {
     constructor(state) {
         this.state = state;
-        this.modes = new EditorModes(state);
+        this.mode = new EditorModes(state);
         this.input = new EditorInput(state, this);
         this.stats = new EditorStats(state, this);
+        this.attributes = new EditorAttributes(state, this);
     }
 
     // TODO(kirjs): This parses it every time, not optimal.

@@ -1,4 +1,4 @@
-import {modes} from "@/store/utils/modes";
+import {mode} from "@/store/utils/mode";
 
 
 export class EditorInput {
@@ -13,13 +13,13 @@ export class EditorInput {
 
     getText(defaultValue = '', options) {
         return new Promise((resolve) => {
-                const mode = this.state.mode;
+                const previousMode = this.state.mode;
                 const modeArg = this.state.modeArg;
                 this.state.filter = defaultValue;
-                this.utils.modes.setMode(modes.UPDATE_CONTENT, {
+                this.utils.mode.setMode(mode.UPDATE_CONTENT, {
                     options,
                     callback: (text) => {
-                        this.utils.modes.setMode(mode, modeArg);
+                        this.utils.mode.setMode(previousMode, modeArg);
                         resolve(text);
                     }
                 });

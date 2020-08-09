@@ -23,7 +23,7 @@ export function createNode(attrs = {}) {
 export function importNode(node, currentNodeKey) {
     let children = [...node.childNodes]
         .map(n => importNode(n, currentNodeKey));
-    if(node.nodeType === 3){
+    if (node.nodeType === 3) {
         return {
             tagName: '',
             hasChildren: false,
@@ -32,10 +32,19 @@ export function importNode(node, currentNodeKey) {
             textContent: node.textContent,
         }
     }
+
+    const attributes = [];
+    for (const a of node.attributes) {
+        if (a.nodeName !== 'id' && !a.nodeName.startsWith('data-editor-meta')) {
+            attributes.push({name: a.nodeName, value: a.nodeValue});
+        }
+    }
+
     return {
         tagName: node.tagName,
         id: node.getAttribute('data-editor-meta-id'),
         textContent: node.textContent,
+        attributes,
         hasChildren: children.length,
         folded: node.getAttribute('data-editor-meta-folded') === 'true',
         selected: currentNodeKey === node.id,
@@ -56,11 +65,10 @@ export function getFirstExisting(...arr) {
     return $();
 }
 
-export function cleanUpHtml(node){
-
+export function cleanUpHtml(node) {
     return $(node).find('*')
         .removeAttr('id')
-        .attr('id', function(){
+        .attr('id', function () {
             return this.getAttribute('data-editor-meta-id');
         })
         .removeAttr('data-editor-meta-id')
@@ -69,7 +77,4 @@ export function cleanUpHtml(node){
         .unwrap()
         .end()
         .html();
-
-
-
 }

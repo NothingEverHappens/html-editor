@@ -1,4 +1,4 @@
-export const modes = {
+export const mode = {
     NORMAL: {
         focus: false,
         filter: '',

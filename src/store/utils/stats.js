@@ -25,18 +25,26 @@ export class EditorStats {
     }
 
     getTagNames() {
-        return this.data.tagNames.sort((a, b) => b.used - a.used);
+        return this.getByKey('tagNames');
     }
 
-    useTagName(key) {
-        const tag = this.data.tagNames.find(t => t.key === key);
+    getByKey(key) {
+        return (this.data[key] || []).sort((a, b) => b.used - a.used);
+    }
+
+
+    update(dataSet, key) {
+        const tag = this.data[dataSet].find(t => t.key === key);
         if (tag) {
             tag.used++;
         } else {
-            this.data.tagNames.push({key: key, used: 1})
+            this.data[dataSet].push({key, used: 1})
         }
 
         this.writeData();
+    }
 
+    useTagName(value) {
+        this.update('tagNames', value);
     }
 }
