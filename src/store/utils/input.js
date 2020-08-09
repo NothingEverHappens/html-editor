@@ -7,14 +7,17 @@ export class EditorInput {
         this.utils = utils;
     }
 
-    getText(defaultValue = '') {
+    getText(defaultValue = '', options) {
         return new Promise((resolve) => {
                 const mode = this.state.mode;
                 const modeArg = this.state.modeArg;
                 this.state.filter = defaultValue;
-                this.utils.modes.setMode(modes.UPDATE_CONTENT, (text) => {
-                    this.utils.modes.setMode(mode, modeArg);
-                    resolve(text);
+                this.utils.modes.setMode(modes.UPDATE_CONTENT, {
+                    options,
+                    callback: (text) => {
+                        this.utils.modes.setMode(mode, modeArg);
+                        resolve(text);
+                    }
                 });
             }
         )

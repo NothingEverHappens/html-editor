@@ -34,17 +34,13 @@ export function importNode(node, currentNodeKey) {
     }
     return {
         tagName: node.tagName,
-        id: node.id,
+        id: node.getAttribute('data-editor-meta-id'),
         textContent: node.textContent,
         hasChildren: children.length,
-        folded: node.getAttribute('meta-folded') === 'true',
+        folded: node.getAttribute('data-editor-meta-folded') === 'true',
         selected: currentNodeKey === node.id,
         children: children,
     };
-}
-
-export function findCurrentNode(state) {
-    return $(state.node).wrap('div').parent().find('#' + state.selectedNodeKey);
 }
 
 export function findRootNode(node) {
@@ -58,5 +54,22 @@ export function getFirstExisting(...arr) {
         }
     }
     return $();
+}
+
+export function cleanUpHtml(node){
+
+    return $(node).find('*')
+        .removeAttr('id')
+        .attr('id', function(){
+            return this.getAttribute('data-editor-meta-id');
+        })
+        .removeAttr('data-editor-meta-id')
+        .end()
+        .find('text')
+        .unwrap()
+        .end()
+        .html();
+
+
 
 }

@@ -5,7 +5,6 @@
       hasChildren: node.hasChildren
       }">
 
-
     <span v-if="node.tagName==='TEXT'">
       <span class="tag" :class="{selected: node.selected}"></span>
       {{node.textContent}}

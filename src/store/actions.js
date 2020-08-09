@@ -4,6 +4,7 @@ import {foldingEditorActions} from "@/store/actions/folding";
 import {EditorUtils} from "@/store/utils/utils";
 import {metaEditorActions} from "@/store/actions/meta";
 import {modes} from "@/store/utils/modes";
+import {inputActions} from "@/store/actions/input";
 
 function getDisplayShortcut(shortcut) {
     const map = {
@@ -54,10 +55,14 @@ export class Actions {
             }
             return a;
         }).map(a => {
-            return {displayShortcut: getDisplayShortcut(a.shortcut), ...a};
+            return {
+                displayShortcut: getDisplayShortcut(a.shortcut),
+                ...a,
+                key: typeof a.key === 'function' ? a.key(state) : a.key,
+            };
         })
-            .filter(a=>{
-                return !filter || a.key.toLowerCase().includes(filter.toLocaleString());
+            .filter(a => {
+                return !filter || a.key.toLowerCase().includes(filter.toLowerCase());
             })
             .filter(a => {
                 const matchesPredicate = typeof a.displayPredicate !== 'function' ||
@@ -75,4 +80,5 @@ editorActions.addActions(navigationEditorActions);
 editorActions.addActions(nodeManipulationEditorActions);
 editorActions.addActions(foldingEditorActions);
 editorActions.addActions(metaEditorActions);
+editorActions.addActions(inputActions);
 

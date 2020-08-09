@@ -1,7 +1,8 @@
-import {findCurrentNode, findRootNode, getFirstExisting, uniqueKey} from "@/store/helpers";
+import {findRootNode, getFirstExisting, uniqueKey} from "@/store/helpers";
 import $ from 'jquery';
 import {EditorModes} from "@/store/utils/modes";
 import {EditorInput} from "@/store/utils/input";
+import {EditorStats} from "@/store/utils/stats";
 
 
 export class EditorUtils {
@@ -9,10 +10,14 @@ export class EditorUtils {
         this.state = state;
         this.modes = new EditorModes(state);
         this.input = new EditorInput(state, this);
+        this.stats = new EditorStats(state, this);
     }
 
+    // TODO(kirjs): This parses it every time, not optimal.
     get node() {
-        return findCurrentNode(this.state);
+        const selector = '#' + this.state.selectedNodeKey;
+        const node = $(this.state.node).find(selector).addBack(selector);
+        return Object.freeze(node);
     }
 
     hasNextSibling() {
@@ -20,26 +25,33 @@ export class EditorUtils {
     }
 
     goChild() {
-        const node = this.node;
+        this.selectFirst(this.node.children());
+    }
 
-        const parentId = node.children().attr('id');
-        if (parentId) {
-            this.state.selectedNodeKey = parentId;
-        }
+    goParent() {
+        this.selectFirst(this.node.parent());
     }
 
     goNext() {
-        const node = this.node;
+        this.selectFirst(
+            this.node.children(),
+            this.node.next(),
+            this.node.parents().filter((_, el) => el.nextSibling).next(),
+        );
+    }
 
-        const nextId = getFirstExisting(
-            node.children(),
-            node.next(),
-            node.parents().filter((_, el) => el.nextSibling).next(),
-        ).attr('id');
+    goNextSibling() {
+        this.selectFirst(
+            this.node.children()
+        );
+    }
 
-        if (nextId) {
-            this.state.selectedNodeKey = nextId;
-        }
+    goPrevious() {
+        this.selectFirst(
+            this.node.prev().filter(':parent').find('*').last(),
+            this.node.prev(),
+            this.node.parent()
+        );
     }
 
     updateTagName(tagName) {
@@ -56,31 +68,6 @@ export class EditorUtils {
         this.state.node = findRootNode($(parent))[0].outerHTML;
     }
 
-    goNextSibling() {
-        const node = this.node;
-
-        const nextId = getFirstExisting(
-            node.next(),
-        ).attr('id');
-
-        if (nextId) {
-            this.state.selectedNodeKey = nextId;
-        }
-    }
-
-    goPrevious() {
-        const node = this.node;
-
-        const prevId = getFirstExisting(
-            node.prev().filter(':parent').find('*').last(),
-            node.prev(),
-            node.parent()
-        ).attr('id');
-
-        if (prevId) {
-            this.state.selectedNodeKey = prevId;
-        }
-    }
 
     isRoot() {
         return this.node.attr('id') === 'root'
@@ -91,9 +78,7 @@ export class EditorUtils {
     }
 
     setText(content) {
-        const node = this.node;
-        node.text(content);
-        this.state.node = findRootNode(node)[0].outerHTML;
+        this.commit(node => node.text(content))
     }
 
     getText() {
@@ -103,21 +88,44 @@ export class EditorUtils {
     addChild(state, makeCurrent = false) {
         const el = document.createElement('div');
         el.setAttribute('id', uniqueKey());
-        let root = findCurrentNode(state).append(el);
-        state.node = findRootNode(root)[0].outerHTML;
+
+        this.commit(node => node.append(el));
 
         if (makeCurrent) {
-            state.selectedNodeKey = el.id;
+            this.select(el.id);
         }
     }
 
     addTextChild(text) {
         this.addChild(this.state, true);
         this.updateTagName('text');
-        const node = this.node;
-        node.text(text);
-        this.state.node = findRootNode(node)[0].outerHTML;
+        this.setText(text);
     }
 
+    /**
+     * We use jquery to manipulate the DOM.
+     * We store the tree as text, and serialize/deserialize it for every operation.
+     */
 
+    commit(callback) {
+        const node = this.node;
+        this.state.node = findRootNode(callback(node) || node)[0].outerHTML;
+    }
+
+    select(id) {
+        this.state.selectedNodeKey = id;
+    }
+
+    selectFirst(...queries) {
+        const id = getFirstExisting(...queries).attr('id');
+        if (id) {
+            this.select(id);
+        }
+    }
+
+    setId(id) {
+        this.commit(node => {
+            return node.attr('data-editor-meta-id', id);
+        });
+    }
 }

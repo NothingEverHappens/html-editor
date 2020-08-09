@@ -1,16 +1,13 @@
-import {createNode, findCurrentNode, findRootNode} from "@/store/helpers";
-import {modes} from "@/store/utils/modes";
+import {createNode} from "@/store/helpers";
 import {predicates} from "@/store/predicates";
 
 export const nodeManipulationEditorActions = [
     {
         key: 'wrap',
         shortcut: 'w',
-        displayPredicate: predicates.isNotRoot,
-        handler(state) {
-            const node = findCurrentNode(state);
-            node.wrap(createNode());
-            state.node = findRootNode(node)[0].outerHTML;
+        displayPredicate: predicates.not(predicates.isRoot),
+        handler(state, utils) {
+            utils.commit(node => node.wrap(createNode()));
         }
     },
     {
@@ -25,7 +22,7 @@ export const nodeManipulationEditorActions = [
         key: 'addTextNode',
         shortcut: 't',
         async handler(state, utils) {
-            const text =  await utils.input.getText();
+            const text = await utils.input.getText();
             utils.addTextChild(text);
         }
     },
@@ -42,98 +39,58 @@ export const nodeManipulationEditorActions = [
         key: 'setAttribute',
         displayPredicate: predicates.not(predicates.isText),
         shortcut: 'a',
-        handler() {
+        handler(state, utils) {
+            const attributeName = await utils.input.getText('', utils.stats.getTagNames());
+            const attributeValue = await utils.input.getText('', utils.stats.getTagNames());
+            utils.attributes.setAttribute(attributeName, attributeValue);
         }
     },
     {
         key: 'updateTagName',
         displayPredicate: predicates.not(predicates.isText),
         shortcut: 'u',
-        handler(state, utils) {
-            utils.modes.setMode(modes.SELECT_TAG_NAME)
+        async handler(state, utils) {
+            const tagName = await utils.input.getText('', utils.stats.getTagNames());
+            utils.stats.useTagName(tagName);
+            utils.updateTagName(tagName);
         }
     },
     {
-        key: 'updateContent',
-        shortcut: 'c',
-        displayPredicate: predicates.isText,
+        key: 'setId',
+        shortcut: 'i',
+        displayPredicate: predicates.not(predicates.isText),
         async handler(state, utils) {
-
-            const text =  await utils.input.getText(utils.getText());
+            const id = await utils.input.getText(utils.getText());
+            utils.setId(id);
+        }
+    },
+    {
+        key: 'updateText',
+        shortcut: 't',
+        displayPredicate: predicates.not(predicates.isText),
+        async handler(state, utils) {
+            const text = await utils.input.getText(utils.getText());
             utils.setText(text);
         }
     },
     {
-        generator(state) {
-            function handler(state, utils) {
-                console.assert(typeof state.modeArg === 'function');
-                state.modeArg(state.filter);
-                utils.modes.setMode(modes.NORMAL);
-            }
-
-            return {
-                key: state.filter,
-                shortcut: 'Enter',
-                mode: modes.UPDATE_CONTENT,
-                handler
-            };
-
-        }
-    },
-    {
-        generator(state) {
-            const tags = ['SPAN', 'DIV', 'HEADER', 'INPUT'];
-
-            function handler(state, utils) {
-                utils.updateTagName(this.key);
-                state.mode = modes.NORMAL;
-                state.inputFocused = false;
-                state.filter = '';
-            }
-
-            const result = tags.map((key, shortcut) => {
-                    return {
-                        key,
-                        shortcut: '^' + shortcut.toString(),
-                        mode: modes.SELECT_TAG_NAME,
-                        handler
-                    };
-                }
-            );
-
-            if (state.filter) {
-                result.push({
-                    key: state.filter,
-                    shortcut: 'Enter',
-                    mode: modes.SELECT_TAG_NAME,
-                    handler
-                });
-            }
-
-            return result;
-        }
-    },
-
-    {
         key: 'deleteNode',
         shortcut: 'Backspace',
+        displayPredicate: predicates.not(predicates.isRoot),
         handler(state, utils) {
-            const node = findCurrentNode(state);
+            utils.commit(node => {
+                if (utils.hasNextSibling()) {
+                    utils.goNextSibling();
+                } else {
+                    utils.goPrevious();
+                }
 
-            if (node.attr('id') === 'root') {
-                return;
-            }
+                const parent = node.parent();
+                node.remove();
 
-            if (utils.hasNextSibling()) {
-                utils.goNextSibling();
-            } else {
-                utils.goPrevious();
-            }
+                return parent;
+            });
 
-            const parent = node.parent();
-            node.remove();
-
-            state.node = findRootNode(parent)[0].outerHTML;
         }
     },
 ];

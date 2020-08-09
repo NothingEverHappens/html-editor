@@ -3,7 +3,10 @@
     <input ref="filter" @keydown="handleFilter($event)" v-model="filter">
     <div v-for="action of actions" :key="action.key" @click="trigger(action)" class="action">
       <span class="shortcut">{{action.displayShortcut}}</span>
-      <span class="action">{{action.key}}</span>
+      <span>
+        <span class="action">{{action.key}} </span>
+        <span class="meta">{{action.meta}}</span>
+      </span>
     </div>
   </div>
 </template>
@@ -70,7 +73,7 @@
                     this.trigger(action);
                     e.preventDefault();
                 } else {
-                    console.log(e.key);
+                    //console.log(e.key);
                 }
 
             };
@@ -92,6 +95,9 @@
 
   .action {
     cursor: pointer;
+  }
+  .meta {
+    color: #999;
   }
 
   .shortcut {

@@ -1,4 +1,3 @@
-import {findCurrentNode} from "@/store/helpers";
 import {predicates} from "@/store/predicates";
 
 export const navigationEditorActions = [
@@ -14,13 +13,8 @@ export const navigationEditorActions = [
         key: 'goParent',
         shortcut: ['ArrowLeft', 'h'],
         displayPredicate: predicates.not(predicates.isRoot),
-        handler(state) {
-            const node = findCurrentNode(state);
-
-            const parentId = node.parent().attr('id');
-            if (parentId) {
-                state.selectedNodeKey = parentId;
-            }
+        handler(state, utils) {
+            utils.goParent();
         }
     },
     {
