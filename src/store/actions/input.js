@@ -15,16 +15,19 @@ export const inputActions = [
                 config.callback(this.key);
             }
 
-            return config.options.map((option, shortcut) => {
-                    return {
-                        key: option.key,
-                        meta: 'used ' + option.used + ' times',
-                        shortcut: '^' + shortcut.toString(),
-                        mode: mode.UPDATE_CONTENT,
-                        handler
-                    };
-                }
-            );
+
+            return config.options
+                .filter(option => option.key !== utils.input.value)
+                .map((option, shortcut) => {
+                        return {
+                            key: option.key,
+                            meta: 'used ' + option.used + ' times',
+                            shortcut: '^' + shortcut.toString(),
+                            mode: mode.UPDATE_CONTENT,
+                            handler
+                        };
+                    }
+                );
         }
     },
     {

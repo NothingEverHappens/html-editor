@@ -17,8 +17,8 @@ export class EditorUtils {
 
     // TODO(kirjs): This parses it every time, not optimal.
     get node() {
-        const selector = '#' + this.state.selectedNodeKey;
-        const node = $(this.state.node).find(selector).addBack(selector);
+        const selector = '#' + this.state.files[this.state.selectedFileName].selectedNodeKey;
+        const node = $(this.state.files[this.state.selectedFileName].code).find(selector).addBack(selector);
         return Object.freeze(node);
     }
 
@@ -34,11 +34,26 @@ export class EditorUtils {
         this.selectFirst(this.node.parent());
     }
 
-    goNext() {
-        this.selectFirst(
+
+    findPrevious() {
+        return getFirstExisting(
+            this.node.prev().filter(':parent').find('*').last(),
+            this.node.prev(),
+            this.node.parent()
+        )
+    }
+
+    findNext() {
+        return getFirstExisting(
             this.node.children(),
             this.node.next(),
             this.node.parents().filter((_, el) => el.nextSibling).next(),
+        )
+    }
+
+    goNext() {
+        this.selectFirst(
+            this.findNext()
         );
     }
 
@@ -47,6 +62,7 @@ export class EditorUtils {
             this.node.children()
         );
     }
+
 
     goPrevious() {
         this.selectFirst(
@@ -57,17 +73,18 @@ export class EditorUtils {
     }
 
     updateTagName(tagName) {
-        const node = this.node[0];
-        const renamed = document.createElement(tagName);
-        const parent = node.parentNode;
+        // Broken
+        this.commit(([node]) => {
+            const renamed = document.createElement(tagName);
+            const parent = node.parentNode;
 
-        for (const a of node.attributes) {
-            renamed.setAttribute(a.nodeName, a.nodeValue);
-        }
-        renamed.innerHTML = node.innerHTML;
-        parent.replaceChild(renamed, node);
-
-        this.state.node = findRootNode($(parent))[0].outerHTML;
+            for (const a of node.attributes) {
+                renamed.setAttribute(a.nodeName, a.nodeValue);
+            }
+            renamed.innerHTML = node.innerHTML;
+            parent.replaceChild(renamed, node);
+            return $(parent);
+        });
     }
 
 
@@ -87,8 +104,8 @@ export class EditorUtils {
         return this.node.text();
     }
 
-    addChild(state, makeCurrent = false) {
-        const el = document.createElement('div');
+    addChild(tagName = 'div', makeCurrent = false) {
+        const el = document.createElement(tagName);
         el.setAttribute('id', uniqueKey());
 
         this.commit(node => node.append(el));
@@ -98,9 +115,21 @@ export class EditorUtils {
         }
     }
 
+    addSibling(tagName = 'div', makeCurrent = false) {
+        const el = document.createElement(tagName);
+        el.setAttribute('id', uniqueKey());
+
+        this.commit(node => {
+            $(el).insertAfter(node);
+        });
+
+        if (makeCurrent) {
+            this.select(el.id);
+        }
+    }
+
     addTextChild(text) {
-        this.addChild(this.state, true);
-        this.updateTagName('text');
+        this.addChild('text', true);
         this.setText(text);
     }
 
@@ -111,11 +140,12 @@ export class EditorUtils {
 
     commit(callback) {
         const node = this.node;
-        this.state.node = findRootNode(callback(node) || node)[0].outerHTML;
+        const result = callback(node);
+        this.state.files[this.state.selectedFileName].code = findRootNode(result || node)[0].outerHTML;
     }
 
     select(id) {
-        this.state.selectedNodeKey = id;
+        this.state.files[this.state.selectedFileName].selectedNodeKey = id;
     }
 
     selectFirst(...queries) {
@@ -130,4 +160,57 @@ export class EditorUtils {
             return node.attr('data-editor-meta-id', id);
         });
     }
+
+    setClass(className) {
+        this.commit(node => {
+            return node.attr('class', className);
+        });
+    }
+
+    moveDown() {
+        const next = this.node.next();
+        if (next.length) {
+            this.commit((node) => {
+                const parent = node.parent();
+                swapNodes(node, next);
+                return parent;
+            })
+        }
+    }
+
+    moveUp() {
+        const prev = this.node.prev();
+        if (prev.length) {
+            this.commit((node) => {
+                const parent = node.parent();
+                swapNodes(node, prev);
+                return parent;
+            })
+        }
+    }
+
+
+    moveRight() {
+        const prev = this.node.prev();
+        if (prev.length) {
+            this.commit((node) => {
+                prev.append(node);
+                prev.parent().find('> #' + node.attr('id')).remove();
+            })
+        }
+    }
+
+
+}
+
+function swapNodes(a, b) {
+    const bId = '#' + b.attr('id');
+    const tmp = $('<tmp></tmp>');
+    const tmp2 = $('<tmp2></tmp2>');
+    a.replaceWith(tmp);
+    const p1 = tmp.parent();
+    p1.find(bId).replaceWith(tmp2);
+    tmp2.replaceWith(a);
+    tmp.replaceWith(b);
+    return b;
 }

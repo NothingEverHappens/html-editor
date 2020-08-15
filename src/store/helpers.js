@@ -2,6 +2,7 @@ import $ from "jquery";
 
 let key = 0;
 
+
 export function uniqueKey() {
     return 'id_' + key++;
 }
@@ -42,7 +43,7 @@ export function importNode(node, currentNodeKey) {
 
     return {
         tagName: node.tagName,
-        id: node.getAttribute('data-editor-meta-id'),
+        id: node.getAttribute('data-editor-meta-id') || node.id,
         textContent: node.textContent,
         attributes,
         hasChildren: children.length,

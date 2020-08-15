@@ -28,12 +28,16 @@ export class EditorStats {
         return this.getByKey('tagNames');
     }
 
-    getByKey(key) {
-        return (this.data[key] || []).sort((a, b) => b.used - a.used);
+    getByKey(dataSet) {
+        return (this.data[dataSet] || []).sort((a, b) => b.used - a.used);
     }
 
 
     update(dataSet, key) {
+        if (!this.data[dataSet]) {
+            this.data[dataSet] = [];
+        }
+
         const tag = this.data[dataSet].find(t => t.key === key);
         if (tag) {
             tag.used++;

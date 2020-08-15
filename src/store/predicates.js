@@ -1,21 +1,32 @@
+function and(predicate, predicate2) {
+    return (utils) => predicate(utils) && predicate2(utils)
+}
+
+function not(predicate) {
+    return (utils) => !predicate(utils);
+}
+
+function isText(utils) {
+    return utils.isText()
+}
+
+function isRoot(utils) {
+    return utils.isRoot()
+}
+
 export const predicates = {
-    isRoot(utils) {
-        return utils.isRoot()
-    },
-    isText(utils) {
-        return utils.isText()
-    },
+    isRoot,
+    isText,
     hasFilter(state) {
         return state.filter !== '';
     },
-    not(predicate) {
-        return (utils) => !predicate(utils);
-    },
-    and(predicate, predicate2) {
-        return (utils) => predicate(utils) && predicate2(utils)
-    },
+    not,
+    and,
     isMode(mode) {
         return (utils) => utils.mode.is(mode);
-    }
-
+    },
+    isNode: and(
+        not(isText),
+        not(isRoot),
+    ),
 };

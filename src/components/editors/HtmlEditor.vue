@@ -22,7 +22,7 @@
         </span>
       </span>
       <span v-if="!node.folded">
-        <Node v-for="child of node.children" :key="child.key" :node="child"></Node>
+        <HtmlEditor v-for="child of node.children" :key="child.key" :node="child"></HtmlEditor>
       </span>
     </span>
   </div>
@@ -30,7 +30,7 @@
 
 <script>
     export default {
-        name: "Node",
+        name: "HtmlEditor",
         props: ['node'],
         data() {
             return {}
@@ -60,7 +60,7 @@
   }
 
   .tag.selected {
-    background: #f90;
+    background: #ffe500;
   }
 
 
@@ -69,7 +69,7 @@
   }
 
   .tag {
-    background: #ddd;
+    background: #f5f5f5;
     display: inline-block;
     padding: 4px;
     border-radius: 8px;

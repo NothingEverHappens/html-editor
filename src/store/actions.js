@@ -5,6 +5,7 @@ import {EditorUtils} from "@/store/utils/utils";
 import {metaEditorActions} from "@/store/actions/meta";
 import {mode} from "@/store/utils/mode";
 import {inputActions} from "@/store/actions/input";
+import {jsActions} from "@/store/actions/javascript/js";
 
 function getDisplayShortcut(shortcut) {
     const map = {
@@ -35,7 +36,7 @@ export class Actions {
         actions.forEach(a => this.addAction(a))
     }
 
-    execute(action, state) {
+    async execute(action, state) {
         const utils = new EditorUtils(state);
         const a = this.getActions(state).find(a => a.key === action.type);
 
@@ -45,7 +46,17 @@ export class Actions {
 
         console.assert(a.handler, 'action ' + a.key + ' is missing a handler');
 
-        a.handler.call(a, utils);
+        //
+        // const inputs = {};
+        // if (Array.isArray(a.inputs)) {
+        //     for (const input of a.inputs) {
+        //         const value = await utils.input.getText('', utils.stats.getByKey(input.key));
+        //         inputs[input.key] = value;
+        //         utils.stats.update(input.key, value);
+        //     }
+        // }
+
+        a.handler.call(a, utils, action);
     }
 
     getActions(state, filter) {
@@ -82,4 +93,5 @@ editorActions.addActions(nodeManipulationEditorActions);
 editorActions.addActions(foldingEditorActions);
 editorActions.addActions(metaEditorActions);
 editorActions.addActions(inputActions);
+editorActions.addActions(jsActions);
 

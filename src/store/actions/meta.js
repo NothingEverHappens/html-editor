@@ -11,5 +11,4 @@ export const metaEditorActions = [
             utils.mode.setMode(mode.NORMAL);
         }
     },
-
 ];

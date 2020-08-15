@@ -1,6 +1,7 @@
 <template>
-  <div>lol
-    <Node :node="tree"></Node>
+  <div>
+    <Files></Files>
+    <HtmlEditor :node="tree"></HtmlEditor>
     <Shortcuts></Shortcuts>
     <Preview></Preview>
   </div>
@@ -8,10 +9,11 @@
 </template>
 
 <script>
-    import Node from "@/components/Node";
     import {mapGetters, mapMutations} from "vuex";
     import Shortcuts from "@/components/Shortcuts";
     import Preview from "@/components/Preview";
+    import HtmlEditor from "@/components/editors/HtmlEditor";
+    import Files from "@/components/Files";
 
     export default {
         name: "Editor",
@@ -22,20 +24,28 @@
         methods: {
             ...mapMutations(['executeAction'])
         },
-        components: {Node, Shortcuts, Preview},
+        components: {HtmlEditor, Files, Shortcuts, Preview,},
         created() {
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'span'});
-            this.executeAction({type: 'goChild'});
+            // this.executeAction({type: 'addDiv', tag: 'div'});
+            // this.executeAction({type: 'addDiv', tag: 'div'});
+            // this.executeAction({type: 'addDiv', tag: 'div'});
+            this.executeAction({type: 'addDiv', tag: 'div'});
+            this.executeAction({type: 'addDiv', tag: 'div'});
+            this.executeAction({type: 'addDiv', tag: 'div'});
+            this.executeAction({type: 'addDiv', tag: 'div'});
+            this.executeAction({type: 'addDiv', tag: 'div'});
+            // this.executeAction({type: 'addChild', tag: 'span'});
+            // this.executeAction({type: 'goChild'});
             this.executeAction({type: 'goNext'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'addChild', tag: 'div'});
-            this.executeAction({type: 'goNext'});
-            this.executeAction({type: 'goNext'});
+            // this.executeAction({type: 'goNext'});
+            // this.executeAction({type: 'goNext'});
+           // this.executeAction({type: 'updateTagName', tagName: 'lol'});
+            this.executeAction({type: 'moveDown'});
+            // this.executeAction({type: 'addChild', tag: 'div'});
+            // this.executeAction({type: 'addChild', tag: 'div'});
+            // this.executeAction({type: 'addChild', tag: 'div'});
+            // this.executeAction({type: 'goNext'});
+            // this.executeAction({type: 'goNext'});
             //this.executeAction({type: 'updateTagName'});
 
             // this.setAttribute();
