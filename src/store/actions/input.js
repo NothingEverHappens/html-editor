@@ -34,6 +34,7 @@ export const inputActions = [
         key: (utils) => utils.input.value,
         displayPredicate: predicates.hasFilter,
         shortcut: 'Enter',
+        type: '*',
         mode: mode.UPDATE_CONTENT,
         handler(utils) {
             const config = utils.mode.getConfig();

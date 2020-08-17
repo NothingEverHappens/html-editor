@@ -10,7 +10,7 @@ export function uniqueKey() {
 export function createNode(attrs = {}) {
     const node = document.createElement('div');
 
-    for (const [key, value] in Object.entries(attrs)) {
+    for (const [key, value] of Object.entries(attrs)) {
         node.setAttribute(key, value);
     }
 

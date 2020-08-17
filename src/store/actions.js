@@ -5,7 +5,8 @@ import {EditorUtils} from "@/store/utils/utils";
 import {metaEditorActions} from "@/store/actions/meta";
 import {mode} from "@/store/utils/mode";
 import {inputActions} from "@/store/actions/input";
-import {jsActions} from "@/store/actions/javascript/js";
+import {jsActions} from "@/store/typescript/actions";
+import {extensionToType, fileTypes} from "@/store/store";
 
 function getDisplayShortcut(shortcut) {
     const map = {
@@ -77,12 +78,19 @@ export class Actions {
                 return !filter || a.key.toLowerCase().includes(filter.toLowerCase());
             })
             .filter(a => {
+                // TODO: This is the same as getter. reuse
+                const type = extensionToType[state.selectedFileName.match(/\.(\w+)$/)[1]];
+                // console.log(a.type, a.key, a);
+                return a.type === '*' || (a.type || fileTypes.HTML) === type;
+            })
+            .filter(a => {
                 const matchesPredicate = typeof a.displayPredicate !== 'function' ||
                     a.displayPredicate(utils);
 
                 const matchesMode = a.mode === '*' || (a.mode || mode.NORMAL) === state.mode;
                 return matchesPredicate && matchesMode;
-            });
+            })
+
     }
 }
 

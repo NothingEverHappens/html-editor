@@ -23,7 +23,8 @@
         computed: {
             ...mapGetters(['tree', 'state', 'inputFocused']),
             actions() {
-                return editorActions.getActions(this.state, this.filter);
+                const actions = editorActions.getActions(this.state, this.filter);
+                return actions;
             },
             ...mapFields(['filter']),
         },
@@ -109,6 +110,5 @@
     margin-right: 4px;
     border-radius: 4px;
     text-align: center;
-
   }
 </style>

@@ -1,7 +1,8 @@
 <template>
   <div>
     <Files></Files>
-    <HtmlEditor :node="tree"></HtmlEditor>
+    <HtmlEditor  v-if="selectedFileType === fileTypes.HTML" :node="tree"></HtmlEditor>
+    <TsEditor  v-if="selectedFileType === fileTypes.TYPESCRIPT" :tree="tree"></TsEditor>
     <Shortcuts></Shortcuts>
     <Preview></Preview>
   </div>
@@ -14,33 +15,44 @@
     import Preview from "@/components/Preview";
     import HtmlEditor from "@/components/editors/HtmlEditor";
     import Files from "@/components/Files";
+    import {fileTypes} from "@/store/store";
+    import TsEditor from "@/components/editors/ts/TsEditor";
 
     export default {
         name: "Editor",
 
         computed: {
-            ...mapGetters(['tree'])
+            ...mapGetters(['tree', 'selectedFileType'])
         },
         methods: {
             ...mapMutations(['executeAction'])
         },
-        components: {HtmlEditor, Files, Shortcuts, Preview,},
+
+        components: {HtmlEditor, Files, Shortcuts, Preview, TsEditor},
         created() {
+            this.fileTypes = fileTypes;
+            this.executeAction({type: 'goChild', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'goChild', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});
-            // this.executeAction({type: 'addDiv', tag: 'div'});
-            this.executeAction({type: 'addDiv', tag: 'div'});
-            this.executeAction({type: 'addDiv', tag: 'div'});
-            this.executeAction({type: 'addDiv', tag: 'div'});
-            this.executeAction({type: 'addDiv', tag: 'div'});
-            this.executeAction({type: 'addDiv', tag: 'div'});
-            // this.executeAction({type: 'addChild', tag: 'span'});
-            // this.executeAction({type: 'goChild'});
-            this.executeAction({type: 'goNext'});
-            // this.executeAction({type: 'goNext'});
-            // this.executeAction({type: 'goNext'});
-           // this.executeAction({type: 'updateTagName', tagName: 'lol'});
-            this.executeAction({type: 'moveDown'});
+           //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  // this.executeAction({type: 'addChild', tag: 'span'});
+            //  // this.executeAction({type: 'goChild'});
+            //  this.executeAction({type: 'goNext'});
+            //  // this.executeAction({type: 'goNext'});
+            //  // this.executeAction({type: 'goNext'});
+            // // this.executeAction({type: 'updateTagName', tagName: 'lol'});
+            //  this.executeAction({type: 'moveDown'});
             // this.executeAction({type: 'addChild', tag: 'div'});
             // this.executeAction({type: 'addChild', tag: 'div'});
             // this.executeAction({type: 'addChild', tag: 'div'});

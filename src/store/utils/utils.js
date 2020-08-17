@@ -4,6 +4,7 @@ import {EditorModes} from "@/store/utils/mode";
 import {EditorInput} from "@/store/utils/input";
 import {EditorStats} from "@/store/utils/stats";
 import {EditorAttributes} from "@/store/utils/attributes";
+import {EditorTypeScript} from "@/store/typescript/utils";
 
 
 export class EditorUtils {
@@ -13,6 +14,7 @@ export class EditorUtils {
         this.input = new EditorInput(state, this);
         this.stats = new EditorStats(state, this);
         this.attributes = new EditorAttributes(state, this);
+        this.ts = new EditorTypeScript(state, this);
     }
 
     // TODO(kirjs): This parses it every time, not optimal.
