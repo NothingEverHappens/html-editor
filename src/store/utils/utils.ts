@@ -5,24 +5,39 @@ import {EditorInput} from "@/store/utils/input";
 import {EditorStats} from "@/store/utils/stats";
 import {EditorAttributes} from "@/store/utils/attributes";
 import {EditorTypeScript} from "@/store/typescript/utils";
+import {EditorState, HtmlFile} from "@/store/types";
 
 
 export class EditorUtils {
-    constructor(state) {
-        this.state = state;
-        this.mode = new EditorModes(state);
-        this.input = new EditorInput(state, this);
-        this.stats = new EditorStats(state, this);
-        this.attributes = new EditorAttributes(state, this);
-        this.ts = new EditorTypeScript(state, this);
+    readonly mode = new EditorModes(this.state);
+    readonly input = new EditorInput(this.state, this);
+    readonly stats = new EditorStats(this.state, this);
+    readonly attributes = new EditorAttributes(this.state, this);
+    readonly ts = new EditorTypeScript(this.state, this);
+
+    constructor(readonly state: EditorState) {
+
     }
 
     // TODO(kirjs): This parses it every time, not optimal.
     get node() {
-        const selector = '#' + this.state.files[this.state.selectedFileName].selectedNodeKey;
-        const node = $(this.state.files[this.state.selectedFileName].code).find(selector).addBack(selector);
-        return Object.freeze(node);
+        const file = this.file;
+        const selector = '#' + file.selectedNodeKey;
+        return $(file.code).find(selector).addBack(selector);
+
     }
+
+    get file(): HtmlFile {
+        const file = this.state.files[this.state.selectedFileName];
+        console.log('do i work? Can you mutate me?');
+        console.assert(file.type === 'html');
+        if (file.type === 'html') {
+            return file;
+        }
+        throw ('fix me');
+    }
+
+
 
     hasNextSibling() {
         return this.node.next().length > 0;
@@ -37,19 +52,11 @@ export class EditorUtils {
     }
 
 
-    findPrevious() {
-        return getFirstExisting(
-            this.node.prev().filter(':parent').find('*').last(),
-            this.node.prev(),
-            this.node.parent()
-        )
-    }
-
     findNext() {
         return getFirstExisting(
             this.node.children(),
             this.node.next(),
-            this.node.parents().filter((_, el) => el.nextSibling).next(),
+            this.node.parents().filter((_, el) => !!el.nextSibling).next(),
         )
     }
 
@@ -74,18 +81,21 @@ export class EditorUtils {
         );
     }
 
-    updateTagName(tagName) {
+    updateTagName(tagName: string) {
         // Broken
         this.commit(([node]) => {
             const renamed = document.createElement(tagName);
             const parent = node.parentNode;
+            if(!parent){
+                throw 'there is no parent, this should not happen';
+            }
 
             for (const a of node.attributes) {
-                renamed.setAttribute(a.nodeName, a.nodeValue);
+                renamed.setAttribute(a.nodeName, a.nodeValue || '');
             }
             renamed.innerHTML = node.innerHTML;
             parent.replaceChild(renamed, node);
-            return $(parent);
+            return $(parent) as JQuery<HTMLElement>;
         });
     }
 
@@ -98,8 +108,8 @@ export class EditorUtils {
         return this.node[0].nodeName === 'TEXT';
     }
 
-    setText(content) {
-        this.commit(node => node.text(content))
+    setText(text: string) {
+        this.commit(node => node.text(text))
     }
 
     getText() {
@@ -131,7 +141,7 @@ export class EditorUtils {
         }
     }
 
-    addTextChild(text) {
+    addTextChild(text: string) {
         this.addChild('text', true);
         this.setText(text);
     }
@@ -141,17 +151,17 @@ export class EditorUtils {
      * We store the tree as text, and serialize/deserialize it for every operation.
      */
 
-    commit(callback) {
+    commit(callback: (node: JQuery) => JQuery | void) {
         const node = this.node;
         const result = callback(node);
-        this.state.files[this.state.selectedFileName].code = findRootNode(result || node)[0].outerHTML;
+        this.file.code = findRootNode(result || node)[0].outerHTML;
     }
 
-    select(id) {
-        this.state.files[this.state.selectedFileName].selectedNodeKey = id;
+    select(id: string) {
+        this.file.selectedNodeKey = id;
     }
 
-    selectFirst(...queries) {
+    selectFirst(...queries: JQuery[]) {
         const firstExisting = getFirstExisting(...queries);
         const id = firstExisting.attr('id');
         if (id) {
@@ -159,7 +169,7 @@ export class EditorUtils {
         }
     }
 
-    setId(id) {
+    setId(id: string) {
         this.commit(node => {
             return node.attr('data-editor-meta-id', id);
         });
@@ -169,23 +179,23 @@ export class EditorUtils {
         return this.node.attr('data-editor-meta-id');
     }
 
-    setClass(className) {
+    setClass(className: string) {
         this.setAttr('class', className)
     }
 
-    getClass(){
+    getClass() {
         return this.getAttr('class');
     }
 
 
-    setAttr(name, value) {
+    setAttr(name: string, value: string) {
         this.commit(node => {
             return node.attr(name, value);
         });
     }
 
 
-    getAttr(name) {
+    getAttr(name: string) {
         return this.node.attr(name);
     }
 
@@ -225,7 +235,7 @@ export class EditorUtils {
 
 }
 
-function swapNodes(a, b) {
+function swapNodes(a: JQuery, b: JQuery) {
     const bId = '#' + b.attr('id');
     const tmp = $('<tmp></tmp>');
     const tmp2 = $('<tmp2></tmp2>');

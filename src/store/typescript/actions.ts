@@ -1,8 +1,10 @@
 import {fileTypes} from "@/store/store";
 import {tsPredicates} from "@/store/typescript/predicates";
+import {EditorAction} from "@/store/types";
+import { Identifier } from 'typescript';
 
 
-export const jsActions = [
+export const jsActions: EditorAction[] = [
     {
         key: 'createFunction',
         type: fileTypes.TYPESCRIPT,
@@ -34,7 +36,7 @@ export const jsActions = [
         displayPredicate: tsPredicates.nodeKind(['Identifier']),
         async handler(utils, action, name) {
             if (!name) {
-                name = await utils.input.getText(utils.ts.node.text, utils.stats.getTagNames());
+                name = await utils.input.getText((utils.ts.node as Identifier).text, utils.stats.getTagNames());
             }
             utils.ts.rename(name);
         }
@@ -53,9 +55,8 @@ export const jsActions = [
         type: fileTypes.TYPESCRIPT,
         shortcut: '~',
         displayPredicate: tsPredicates.nodeKind(['TrueKeyword', 'FalseKeyword']),
-        async handler(utils, action, name) {
-            this.utils.flipReadonly();
-            debugger;
+        async handler(utils) {
+            utils.ts.flipReadonly();
         }
     },
     {
@@ -119,7 +120,7 @@ export const jsActions = [
         key: 'goToIdentifier',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'i',
-        async handler(utils, action, name) {
+        async handler(utils, action, name: any) {
             if (!name) {
                 name = await utils.input.getText('', utils.ts.getIdentifiers());
             }

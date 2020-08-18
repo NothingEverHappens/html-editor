@@ -1,4 +1,4 @@
-export const kindMap = {
+export const kindMap: Record<string, string> = {
     [0]: 'Unknown',
     [1]: 'EndOfFileToken',
     [2]: 'SingleLineCommentTrivia',

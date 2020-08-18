@@ -1,15 +1,19 @@
+import {EditorAutocompleteOption, EditorState} from "@/store/types";
+import {EditorUtils} from "@/store/utils/utils";
+
 export class EditorStats {
-    constructor(state, utils) {
-        this.state = state;
-        this.utils = utils;
-        this.key = 'editor-usage-stats3';
+    private readonly key = 'editor-usage-stats3';
+
+    private data: Record<string, EditorAutocompleteOption[]> = {};
+
+    constructor(private readonly state: EditorState, utils: EditorUtils) {
         this.readData();
 
     }
 
 
     readData() {
-        const data = JSON.parse(localStorage.getItem(this.key) || null);
+        const data = JSON.parse(localStorage.getItem(this.key) || 'null');
         if (!data) {
             this.data = {
                 tagNames: []
@@ -28,12 +32,13 @@ export class EditorStats {
         return this.getByKey('tagNames');
     }
 
-    getByKey(dataSet) {
+    getByKey(dataSet: string, key?: string) {
+        // TODO: Implement key
         return (this.data[dataSet] || []).sort((a, b) => b.used - a.used);
     }
 
 
-    update(dataSet, key) {
+    update(dataSet: string, key: string) {
         if (!this.data[dataSet]) {
             this.data[dataSet] = [];
         }
@@ -48,7 +53,7 @@ export class EditorStats {
         this.writeData();
     }
 
-    useTagName(value) {
+    useTagName(value: string) {
         this.update('tagNames', value);
     }
 }

@@ -1,4 +1,17 @@
-export const mode = {
+import {EditorAutocompleteOption, EditorState} from "@/store/types";
+
+export interface EditorMode {
+    focus: boolean;
+    filter?: string;
+}
+
+export interface ModeArg {
+    options: EditorAutocompleteOption[]
+    callback: (key: string) => void;
+}
+
+
+export const mode: Record<string, EditorMode> = {
     NORMAL: {
         focus: false,
         filter: '',
@@ -12,11 +25,10 @@ export const mode = {
 };
 
 export class EditorModes {
-    constructor(state) {
-        this.state = state;
+    constructor(private readonly state: EditorState) {
     }
 
-    setMode(mode, modeArg) {
+    setMode(mode: EditorMode, modeArg?: ModeArg) {
         this.state.mode = mode;
         this.state.inputFocused = mode.focus;
         if (mode.filter !== undefined) {
@@ -27,12 +39,11 @@ export class EditorModes {
         this.state.modeArg = modeArg;
     }
 
-    getConfig() {
+    getConfig(): ModeArg {
         return this.state.modeArg;
     }
 
-    is(mode) {
+    is(mode: EditorMode) {
         return this.state.mode === mode;
     }
-
 }

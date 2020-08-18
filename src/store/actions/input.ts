@@ -1,8 +1,11 @@
 import {mode} from "@/store/utils/mode";
 import {predicates} from "@/store/predicates";
+import {EditorAction, EditorActionDefinition} from "@/store/types";
 
-export const inputActions = [
+export const inputActions: EditorAction[] = [
     {
+        key: 'inputAction',
+        shortcut: '*',
         mode: mode.UPDATE_CONTENT,
         generator(utils) {
             const config = utils.mode.getConfig();
@@ -11,7 +14,8 @@ export const inputActions = [
                 return [];
             }
 
-            function handler() {
+            // TODO(kirjs)
+            function handler(this: any) {
                 config.callback(this.key);
             }
 

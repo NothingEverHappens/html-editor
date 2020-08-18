@@ -6,6 +6,7 @@ import {editorActions} from "@/store/actions";
 import {getField, updateField} from 'vuex-map-fields';
 import {mode} from "@/store/utils/mode";
 import {parseTypeScriptFile} from "@/store/typescript/utils";
+import {EditorState} from "@/store/types";
 
 export const fileTypes = {
     JAVASCRIPT: 'JAVASCRIPT',
@@ -13,7 +14,7 @@ export const fileTypes = {
     HTML: 'HTML',
 };
 
-export const extensionToType = {
+export const extensionToType: Record<string, string> = {
     js: fileTypes.JAVASCRIPT,
     ts: fileTypes.TYPESCRIPT,
     html: fileTypes.HTML,
@@ -107,7 +108,7 @@ export class CloudLoggingSettingsPage implements OnDestroy {
   `
 );
 
-function getInitialState() {
+function getInitialState(): EditorState {
     return {
         mode: mode.NORMAL,
         inputFocused: false,
@@ -117,10 +118,12 @@ function getInitialState() {
         selectedFileName: 'index.ts',
         files: {
             'index.ts': {
+                type: 'ts',
                 tree,
                 selectedNode: tree,
             },
             'index.html': {
+                type: 'html',
                 code: '<root id = root>',
                 selectedNodeKey: 'root',
             },
@@ -147,9 +150,6 @@ export function getStore() {
                 state.selectedFileName = selectedFileName;
             },
             updateField,
-            selectNode(state, node) {
-                state.files[state.selectedFileName].selectedNode = node;
-            },
         },
         getters: {
             getField,
@@ -179,7 +179,7 @@ export function getStore() {
                 return '';
             },
             selectedFileType(state) {
-                return extensionToType[state.selectedFileName.match(/\.(\w+)$/)[1]];
+                return extensionToType[state.selectedFileName.match(/\.(\w+)$/)![1]];
             },
             files(state) {
                 return Object.entries(state.files).map(([name, file]) => {

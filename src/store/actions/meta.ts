@@ -1,7 +1,8 @@
 import {mode} from "@/store/utils/mode";
 import {predicates} from "@/store/predicates";
+import {EditorAction} from "@/store/types";
 
-export const metaEditorActions = [
+export const metaEditorActions: EditorAction[]  = [
     {
         key: 'Back to normal mode',
         mode: '*',

@@ -1,4 +1,6 @@
-export const foldingEditorActions = [
+import {EditorAction} from "@/store/types";
+
+export const foldingEditorActions: EditorAction[] = [
     {
         key: 'fold',
         shortcut: 'f',
@@ -6,5 +8,4 @@ export const foldingEditorActions = [
             utils.attributes.flipAttribute('data-editor-meta-folded');
         }
     },
-
 ];

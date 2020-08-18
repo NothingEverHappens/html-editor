@@ -1,7 +1,10 @@
 import * as ts from 'typescript';
+import {PropertyDeclaration} from 'typescript';
 import {tsquery} from '@phenomnomnominal/tsquery';
+import {EditorState, TsFile} from "@/store/types";
+import {EditorUtils} from "@/store/utils/utils";
 
-export function parseTypeScriptFile(code) {
+export function parseTypeScriptFile(code: string) {
     const r = ts.createSourceFile(
         'any.ts',
         code,
@@ -17,28 +20,35 @@ export function parseTypeScriptFile(code) {
 // }
 
 export class EditorTypeScript {
-    constructor(state, utils) {
-        this.state = state;
-        this.utils = utils;
+    constructor(private readonly state: EditorState,
+                private readonly utils: EditorUtils) {
+
+    }
+
+
+    get file(): TsFile {
+        const file = this.state.files[this.state.selectedFileName];
+        console.assert(file.type === 'ts');
+        return file as TsFile;
     }
 
     get node() {
-        return this.state.files[this.state.selectedFileName].selectedNode;
+        return this.file.selectedNode;
     }
 
     get tree() {
-        return this.state.files[this.state.selectedFileName].tree;
+        return this.file.tree;
     }
 
-    selectNode(node) {
+    selectNode(node: ts.Node) {
         if (node) {
-            this.state.files[this.state.selectedFileName].selectedNode = node;
+            this.file.selectedNode = node;
         }
     }
 
     goChild() {
         const node = this.node;
-        let hasEl;
+        let hasEl: boolean;
         ts.forEachChild(node, (n) => {
             if (!hasEl) {
                 hasEl = true;
@@ -70,24 +80,25 @@ export class EditorTypeScript {
         });
     }
 
-    rename(name) {
-        this.node.escapedText = name;
+    rename(name: string) {
+        (this.node as unknown as ts.Identifier).escapedText = name as any;
     }
 
     flipReadonly() {
-        if (!this.node.modifiers) {
-            this.node.modifiers = [];
+        const node = this.node as unknown as PropertyDeclaration as any;
+        if (!node.modifiers) {
+            node.modifiers = [];
         }
-        if (this.node.modifiers.some(a => a.kind === 138)) {
-            this.node.modifiers = this.node.modifiers.filter(a => a.kind !== 138);
+        if (node.modifiers.some((a: ts.Node) => a.kind === ts.SyntaxKind.ReadonlyKeyword)) {
+            node.modifiers = node.modifiers.filter((a: ts.Node) => a.kind !== 138);
         } else {
-            this.node.modifiers.push(ts.createToken(ts.SyntaxKind.ReadonlyKeyword));
+            node.modifiers.push(ts.createToken(ts.SyntaxKind.ReadonlyKeyword));
         }
     }
 
     goPrev() {
         const node = this.node;
-        let prev;
+        let prev: ts.Node;
         let hasEl = false;
 
 
@@ -110,25 +121,25 @@ export class EditorTypeScript {
     }
 
     jumpToReturn() {
-        const node = this.utils.ts.node;
-        const child = node.body.statements.find(s => s.kind === 235);
+        const node = this.utils.ts.node as ts.FunctionDeclaration;
+        const child = node.body!.statements.find(s => s.kind === 235);
         if (child) {
             this.selectNode(child);
         } else {
             const result = ts.createReturn();
-            node.body.statements.push(result);
+            (node.body!.statements as any).push(result);
             this.selectNode(result);
         }
     }
 
-    jumpToSelector(selector) {
+    jumpToSelector(selector: string) {
         const nodes = tsquery(this.utils.ts.tree, selector);
         const next = (nodes.indexOf(this.node) + 1) % (nodes.length);
         console.log(next, (nodes.indexOf(this.node) + 1), (nodes.indexOf(this.node) + 1) % (nodes.length - 1));
         this.selectNode(nodes[next]);
     }
 
-    jumpToIdentifier(name) {
+    jumpToIdentifier(name: string) {
         const node = this.utils.ts.tree;
         const nodes = tsquery(node, 'Identifier[name="' + name + '"]');
         if (nodes.length) {
@@ -137,7 +148,7 @@ export class EditorTypeScript {
     }
 
     getIdentifiers() {
-        return [...this.tree.identifiers.values()].map(key => ({key, used: 0}));
+        return [...(this.tree as any).identifiers.values()].map(key => ({key, used: 0}));
     }
 }
 
