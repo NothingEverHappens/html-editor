@@ -81,7 +81,7 @@
 
             document.addEventListener('keydown', this._keyListener.bind(this));
         },
-        beforeDestroy() {
+        beforeUnmount() {
             document.removeEventListener('keydown', this._keyListener);
         }
     };
