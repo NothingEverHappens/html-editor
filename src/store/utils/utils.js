@@ -109,6 +109,7 @@ export class EditorUtils {
     addChild(tagName = 'div', makeCurrent = false) {
         const el = document.createElement(tagName);
         el.setAttribute('id', uniqueKey());
+        el.setAttribute('data-editor-meta-id', uniqueKey());
 
         this.commit(node => node.append(el));
 
@@ -151,7 +152,8 @@ export class EditorUtils {
     }
 
     selectFirst(...queries) {
-        const id = getFirstExisting(...queries).attr('id');
+        const firstExisting = getFirstExisting(...queries);
+        const id = firstExisting.attr('id');
         if (id) {
             this.select(id);
         }
@@ -163,10 +165,28 @@ export class EditorUtils {
         });
     }
 
+    getId() {
+        return this.node.attr('data-editor-meta-id');
+    }
+
     setClass(className) {
+        this.setAttr('class', className)
+    }
+
+    getClass(){
+        return this.getAttr('class');
+    }
+
+
+    setAttr(name, value) {
         this.commit(node => {
-            return node.attr('class', className);
+            return node.attr(name, value);
         });
+    }
+
+
+    getAttr(name) {
+        return this.node.attr(name);
     }
 
     moveDown() {

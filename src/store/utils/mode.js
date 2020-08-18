@@ -22,6 +22,7 @@ export class EditorModes {
         if (mode.filter !== undefined) {
             this.state.filter = mode.filter;
         }
+
         // TODO: There should be a better way?
         this.state.modeArg = modeArg;
     }

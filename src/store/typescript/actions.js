@@ -40,6 +40,57 @@ export const jsActions = [
         }
     },
     {
+        key: 'flipReadonly',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'r',
+        displayPredicate: tsPredicates.nodeKind(['PropertyDeclaration']),
+        async handler(utils) {
+            utils.ts.flipReadonly();
+        }
+    },
+    {
+        key: 'flip boolean',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: '~',
+        displayPredicate: tsPredicates.nodeKind(['TrueKeyword', 'FalseKeyword']),
+        async handler(utils, action, name) {
+            this.utils.flipReadonly();
+            debugger;
+        }
+    },
+    {
+        key: 'jumpToClass',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'c',
+        async handler(utils) {
+            utils.ts.jumpToSelector('ClassDeclaration');
+        }
+    },
+    {
+        key: 'jumpToMethod',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'm',
+        async handler(utils) {
+            utils.ts.jumpToSelector('MethodDeclaration');
+        }
+    },
+    {
+        key: 'jumpToProperty',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'p',
+        async handler(utils) {
+            utils.ts.jumpToSelector('PropertyDeclaration');
+        }
+    },
+    {
+        key: 'jumpToBlock',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'b',
+        async handler(utils) {
+            utils.ts.jumpToSelector('Block');
+        }
+    },
+    {
         key: 'return',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'r',
@@ -70,9 +121,9 @@ export const jsActions = [
         shortcut: 'i',
         async handler(utils, action, name) {
             if (!name) {
-                name = await utils.input.getText(utils.ts.node.text, utils.ts.getIdentifiers());
+                name = await utils.input.getText('', utils.ts.getIdentifiers());
             }
-            utils.ts.rename(name);
+            utils.ts.jumpToIdentifier(name);
         }
     }
 ];

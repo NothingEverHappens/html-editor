@@ -79,3 +79,9 @@ export function cleanUpHtml(node) {
         .end()
         .html();
 }
+
+export function importHtml(html) {
+    return $(html).find(':not([id])')
+        .attr('id', uniqueKey)
+        .end().get(0).outerHTML;
+}

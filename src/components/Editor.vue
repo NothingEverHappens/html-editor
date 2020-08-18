@@ -1,9 +1,15 @@
 <template>
   <div>
     <Files></Files>
-    <HtmlEditor  v-if="selectedFileType === fileTypes.HTML" :node="tree"></HtmlEditor>
-    <TsEditor  v-if="selectedFileType === fileTypes.TYPESCRIPT" :tree="tree"></TsEditor>
-    <Shortcuts></Shortcuts>
+    <div style="display: flex; width: 100%">
+      <div class="shortcuts" style="flex: 1;">
+        <Shortcuts></Shortcuts>
+      </div>
+      <div class="editor" style="flex: 2">
+        <HtmlEditor v-if="selectedFileType === fileTypes.HTML" :node="tree"></HtmlEditor>
+        <TsEditor v-if="selectedFileType === fileTypes.TYPESCRIPT" :tree="tree"></TsEditor>
+      </div>
+    </div>
     <Preview></Preview>
   </div>
 
@@ -37,11 +43,11 @@
             this.executeAction({type: 'goNext', tag: 'div'});
             this.executeAction({type: 'goNext', tag: 'div'});
             this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
+            this.executeAction({type: 'jumpToProperty'});
             // this.executeAction({type: 'goChild', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});
-           //  this.executeAction({type: 'addDiv', tag: 'div'});
+            //  this.executeAction({type: 'addDiv', tag: 'div'});
             //  this.executeAction({type: 'addDiv', tag: 'div'});
             //  this.executeAction({type: 'addDiv', tag: 'div'});
             //  this.executeAction({type: 'addDiv', tag: 'div'});

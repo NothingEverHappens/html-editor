@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import {tsquery} from '@phenomnomnominal/tsquery';
 
 export function parseTypeScriptFile(code) {
     const r = ts.createSourceFile(
@@ -23,6 +24,10 @@ export class EditorTypeScript {
 
     get node() {
         return this.state.files[this.state.selectedFileName].selectedNode;
+    }
+
+    get tree() {
+        return this.state.files[this.state.selectedFileName].tree;
     }
 
     selectNode(node) {
@@ -69,6 +74,17 @@ export class EditorTypeScript {
         this.node.escapedText = name;
     }
 
+    flipReadonly() {
+        if (!this.node.modifiers) {
+            this.node.modifiers = [];
+        }
+        if (this.node.modifiers.some(a => a.kind === 138)) {
+            this.node.modifiers = this.node.modifiers.filter(a => a.kind !== 138);
+        } else {
+            this.node.modifiers.push(ts.createToken(ts.SyntaxKind.ReadonlyKeyword));
+        }
+    }
+
     goPrev() {
         const node = this.node;
         let prev;
@@ -100,9 +116,28 @@ export class EditorTypeScript {
             this.selectNode(child);
         } else {
             const result = ts.createReturn();
-            node.body.statements.push(result)
+            node.body.statements.push(result);
             this.selectNode(result);
         }
+    }
+
+    jumpToSelector(selector) {
+        const nodes = tsquery(this.utils.ts.tree, selector);
+        const next = (nodes.indexOf(this.node) + 1) % (nodes.length);
+        console.log(next, (nodes.indexOf(this.node) + 1), (nodes.indexOf(this.node) + 1) % (nodes.length - 1));
+        this.selectNode(nodes[next]);
+    }
+
+    jumpToIdentifier(name) {
+        const node = this.utils.ts.tree;
+        const nodes = tsquery(node, 'Identifier[name="' + name + '"]');
+        if (nodes.length) {
+            this.selectNode(nodes[0]);
+        }
+    }
+
+    getIdentifiers() {
+        return [...this.tree.identifiers.values()].map(key => ({key, used: 0}));
     }
 }
 

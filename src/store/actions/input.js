@@ -18,16 +18,18 @@ export const inputActions = [
 
             return config.options
                 .filter(option => option.key !== utils.input.value)
+                .filter(option => option.key.toLowerCase().includes(utils.state.filter.toLowerCase()))
                 .map((option, shortcut) => {
                         return {
                             key: option.key,
+                            type: '*',
                             meta: 'used ' + option.used + ' times',
                             shortcut: '^' + shortcut.toString(),
                             mode: mode.UPDATE_CONTENT,
                             handler
                         };
                     }
-                );
+                ).slice(0, 10)
         }
     },
     {

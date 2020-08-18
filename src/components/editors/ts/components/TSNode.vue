@@ -1,5 +1,5 @@
 <template>
-  <span v-if="true" :class="{selected: selected, nodeWrapper: true}" @click="selectCurrentNode()" :data-node="nodeName">
+  <span v-if="true" :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName">
     <template v-if="!isArray">
       <Component v-if="component" :is="component" :nodeName="nodeName" :node="node"/>
     </template>
@@ -59,6 +59,8 @@
         PlusToken: simpleText('PlusToken', '+'),
         EqualsEqualsEqualsToken: simpleText('EqualsEqualsEqualsToken', '+'),
         EqualsToken: simpleText('EqualsToken', '+'),
+        LessThanToken: simpleText('LessThanToken', '<'),
+        AsteriskToken: simpleText('AsteriskToken', '*'),
         ThisKeyword: simpleText('ThisKeyword', 'this'),
         AnyKeyword: simpleText('AnyKeyword', 'any'),
         VoidKeyword: simpleText('VoidKeyword', 'void'),
@@ -70,7 +72,7 @@
         NoSubstitutionTemplateLiteral: simpleText('NoSubstitutionTemplateLiteral', node => `\`${node.text}\``),
         FalseKeyword: simpleText('FalseKeyword', 'false'),
         PrivateKeyword: simpleText('PrivateKeyword', 'private'),
-        ReadonlyKeyword: simpleText('ReadonlyKeyword', 'readonly'),
+        ReadonlyKeyword: simpleText('ReadonlyKeyword', 'readonly '),
         TrueKeyword: simpleText('TrueKeyword', 'true'),
         NullKeyword: simpleText('NullKeyword', 'null'),
         CallExpression: Vue.component('CallExpression', {
@@ -284,21 +286,23 @@
             },
             props: ['node'],
         }),
-        ClassDeclaration: Vue.component('ClassDeclaration', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('div', null, [
-                    createElement('TSNode', {props: {node: props.node.jsDoc}}),
-                    'class ',
-                    props.node.name ? createElement('TSNode', {props: {node: props.node.name}}) : '',
-                    createElement('TSNode', {props: {node: props.node.heritageClauses}}),
-                    ' {',
-                    createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.members}})]),
-                    '}',
-                ]);
-            },
-            props: ['node'],
+
+
+        ClassDeclaration: simpleTemplate('ClassDeclaration', function (createElement, {props}) {
+            console.assert(props.node.members);
+            return createElement('div', null, [
+                props.node.jsDoc && createElement('TSNode', {props: {node: props.node.jsDoc}}),
+                'class ',
+                props.node.name ? createElement('TSNode', {props: {node: props.node.name}}) : '',
+                props.node.heritageClauses && createElement('TSNode', {props: {node: props.node.heritageClauses}}),
+                ' {',
+                createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.members}})]),
+                '}',
+
+            ]);
         }),
+
+
         ObjectLiteralExpression: Vue.component('ObjectLiteralExpression', {
             functional: true,
             render: function (createElement, {props}) {
@@ -323,6 +327,12 @@
 
             ]);
         }),
+        ArrayBindingPattern: simpleTemplate('ArrayBindingPattern', function (createElement) {
+            return createElement('span', null, [
+                '$arraybind$',
+            ]);
+        }),
+
         FunctionType: simpleTemplate('FunctionType', function (createElement, {props}) {
             return createElement('span', null, [
                 '(',
@@ -446,6 +456,7 @@
                 return kindMap[this.node.kind] || this.node.constructor.name;
             },
             component() {
+                console.log(this.nodeName);
                 return components[this.nodeName] || components.Unknown;
             },
             ...mapGetters(['selectedNode']),
@@ -455,7 +466,7 @@
         },
         methods: {
             ...mapMutations(['selectNode']),
-            selectCurrentNode(){
+            selectCurrentNode() {
                 this.selectNode(this.node);
             }
         },

@@ -87,7 +87,7 @@ export const nodeManipulationEditorActions = [
         shortcut: '#',
         displayPredicate: predicates.not(predicates.isText),
         async handler(utils) {
-            const id = await utils.input.getText(utils.getText());
+            const id = await utils.input.getText(utils.getId() || '');
             utils.setId(id);
         }
     },
@@ -96,7 +96,7 @@ export const nodeManipulationEditorActions = [
         shortcut: '.',
         displayPredicate: predicates.not(predicates.isText),
         async handler(utils) {
-            const id = await utils.input.getText(utils.getText());
+            const id = await utils.input.getText(utils.getClass());
             utils.setClass(id);
         }
     },

@@ -1,7 +1,7 @@
 import Vuex from 'vuex';
 
 import $ from 'jquery';
-import {cleanUpHtml, importNode} from "@/store/helpers";
+import {cleanUpHtml, importHtml, importNode} from "@/store/helpers";
 import {editorActions} from "@/store/actions";
 import {getField, updateField} from 'vuex-map-fields';
 import {mode} from "@/store/utils/mode";
@@ -19,258 +19,92 @@ export const extensionToType = {
     html: fileTypes.HTML,
 };
 
-const tree = parseTypeScriptFile(`import {HttpClientTestingModule} from '@angular/common/http/testing';
-import {Store} from '@ngrx/store';
-import {MockStore, provideMockStore} from '@ngrx/store/testing';
-import Empty from 'goog:proto.google.protobuf.Empty'; // from //google/protobuf:empty_jspb_proto
-import {Channel, Release, SiteConfig, SitesApiClientImpl, SitesChannelsApiClientImpl, SitesChannelsReleasesApiClientImpl, SitesReleasesApiClientImpl, SitesVersionsApiClientImpl} from 'google3/google/firebase/hosting/firebasehosting_api_ng2';
-import {HostingSite, HostingSiteTypeEnum, ListHostingSitesResponse, ProjectsHostingApiClientImpl, ProjectsSitesApiClientImpl} from 'google3/google/internal/mobilesdk/mobilesdk_api_client_ng2';
-import {getCurrentProjectNumber} from 'google3/java/com/google/firebase/console/web/core/ngrx/project/selectors';
-import {createSiteConfig} from 'google3/java/com/google/firebase/console/web/modules/hosting/ng2/history/common/converters';
-import {FirebaseRequestServiceFactory} from 'google3/java/com/google/firebase/console/web/shared/api_helpers/ng2/api_client_helpers';
-import {mockFirebaseRequestServiceFactoryByMap} from 'google3/java/com/google/firebase/console/web/shared/api_helpers/ng2/test_helper';
-import {Mockery} from 'google3/java/com/google/firebase/console/web/testing/mockery';
-import {DeepPartial} from 'google3/java/com/google/firebase/console/web/testing/type_utils';
-import {asyncMatchers, describe, expect, get, it, setupModule} from 'google3/javascript/angular2/testing/catalyst';
-import {createSpyFromClass} from 'google3/javascript/typescript/contrib/jasmine/spy_class';
-import {of} from 'rxjs';
+const tree = parseTypeScriptFile(`
+import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
+import {FormControl} from '@angular/forms';
+import {MatDialog} from '@angular/material/dialog';
+import {MatSlideToggleChange} from '@angular/material/slide-toggle';
+import {PermissionRequirements, Requirement} from 'google3/java/com/google/firebase/console/web/components/permissions/permissions';
+import {HostingSiteConfig} from 'google3/java/com/google/firebase/console/web/modules/hosting/ng2/history/common/types';
+import {CloudLoggingUnlinkDialog} from 'google3/java/com/google/firebase/console/web/modules/settings/integrations/ng2/extensions/cloud_logging/dialogs/cloud_logging_unlink_dialog/cloud_logging_unlink_dialog';
+import {CloudLoggingIntegration} from 'google3/java/com/google/firebase/console/web/modules/settings/integrations/ng2/services/cloud_logging_integration';
+import {Permission} from 'google3/java/com/google/firebase/console/web/services/permissions/permissions';
+import {ReplaySubject} from 'rxjs';
+import {filter, takeUntil} from 'rxjs/operators';
 
-import {HostingSitesService} from './sites_service';
-
-
-describe('hostingSitesService', () => {
-  const MAX_VERSIONS = '100';
-  const NEW_MAX_VERSIONS = '200';
-  const PROJECT_NUMBER = 'PITSOT';
-  const SITE = 'Pkchu';
-  const SITES = {
-    site: [{
-      site: 'foo',
-      appId: 'my-app-id',
-      type: HostingSiteTypeEnum.DEFAULT_HOSTING_SITE,
-    }]
+/** Settings page for Cloud Logging  */
+@Component({
+  selector: 'fire-cloud-logging-settings-page',
+  templateUrl: './cloud_logging_settings_page.ng.html',
+  styleUrls: ['./cloud_logging_settings_page.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class CloudLoggingSettingsPage implements OnDestroy {
+  readonly linkPermissions: Readonly<PermissionRequirements> = {
+    permissions: [
+      Permission.FIREBASE_LINKS_UPDATE,
+    ],
+    require: Requirement.ALL,
   };
 
-  function setup() {
-    jasmine.addMatchers(asyncMatchers);
-    const mockery = new Mockery();
+  private readonly destroy$ = new ReplaySubject<void>(1);
 
-    const sitesApi = createSpyFromClass(SitesApiClientImpl);
-    const projectsHostingApi = createSpyFromClass(ProjectsHostingApiClientImpl);
-    const projectsSitesApi = createSpyFromClass(ProjectsSitesApiClientImpl);
-    const channelsSitesApi = createSpyFromClass(SitesChannelsApiClientImpl);
-    const sitesVersionsApi = createSpyFromClass(SitesVersionsApiClientImpl);
-    const sitesReleasesApi = createSpyFromClass(SitesReleasesApiClientImpl);
-    const sitesChannelsReleasesApi =
-        createSpyFromClass(SitesChannelsReleasesApiClientImpl);
+  readonly hostingEnabledControl = new FormControl(true);
+  readonly logsGeneratedPerDay$ =
+      this.cloudLoggingService.getHostingLogsGeneratedPerDay();
 
-    const mockFactory = mockFirebaseRequestServiceFactoryByMap(new Map<{}, {}>([
-      [SitesApiClientImpl, sitesApi],
-      [ProjectsHostingApiClientImpl, projectsHostingApi],
-      [ProjectsSitesApiClientImpl, projectsSitesApi],
-      [SitesChannelsApiClientImpl, channelsSitesApi],
-      [SitesVersionsApiClientImpl, sitesVersionsApi],
-      [SitesChannelsReleasesApiClientImpl, sitesChannelsReleasesApi],
-      [SitesReleasesApiClientImpl, sitesReleasesApi],
-    ]));
+  readonly getHostingLogsGeneratedPerDayLoading$ =
+      this.cloudLoggingService.getHostingLogsGeneratedPerDayLoading();
 
-    setupModule({
-      imports: [HttpClientTestingModule],
-      superProviders: [
-        provideMockStore({}),
-        mockery.ng2Providers(),
-        {
-          provide: FirebaseRequestServiceFactory,
-          useValue: mockFactory,
-        },
-      ]
-    });
+  readonly hostingSites$ = this.cloudLoggingService.hostingSites();
+  readonly storageEstimateBySite$ =
+      this.cloudLoggingService.getStorageEstimateBySite();
 
-    const store = get(Store) as MockStore<{}>;
-    store.overrideSelector(getCurrentProjectNumber, PROJECT_NUMBER);
+  readonly viewInCloudLoggingUrl$ =
+      this.cloudLoggingService.getViewInCloudLoggingUrl();
 
-    return {
-      hostingSiteService: get(HostingSitesService),
-      sitesApi,
-      projectsHostingApi,
-      projectsSitesApi,
-      channelsSitesApi,
-      sitesVersionsApi,
-      sitesReleasesApi,
-      sitesChannelsReleasesApi,
-    };
+  constructor(
+      private readonly cloudLoggingService: CloudLoggingIntegration,
+      private readonly dialog: MatDialog,
+  ) {
+    this.cloudLoggingService.loadLogsGenerated();
   }
 
-  it('fetches release storage settings', () => {
-    const {hostingSiteService, sitesApi} = setup();
-    sitesApi.getConfig.and.returnValue(
-        of(new SiteConfig({maxVersions: MAX_VERSIONS})));
+  openStopDataExportDialog(event: MatSlideToggleChange) {
+    this.dialog.open(CloudLoggingUnlinkDialog)
+        .afterClosed()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe((shouldDisableHosting: boolean) => {
+          if (shouldDisableHosting) {
+            this.cloudLoggingService.disableCloudLogging();
+          } else {
+            this.hostingEnabledControl.setValue(true);
+          }
+        });
+  }
 
-    expect(hostingSiteService.getReleaseStorageSettings('pekachu'))
-        .toEmit(MAX_VERSIONS);
-    expect(sitesApi.getConfig).toHaveBeenCalledWith('sites/pekachu/config');
-  });
+  openUnlinkDialog() {
+    this.dialog.open(CloudLoggingUnlinkDialog)
+        .afterClosed()
+        .pipe(
+            takeUntil(this.destroy$),
+            filter(a => !!a),
+            )
+        .subscribe(() => {
+          this.cloudLoggingService.disableCloudLogging();
+        });
+  }
 
-  it('gets site config', () => {
-    const {hostingSiteService, sitesApi} = setup();
-    const config = new SiteConfig({maxVersions: MAX_VERSIONS});
-    sitesApi.getConfig.and.returnValue(of(config));
+  onSave(configs: HostingSiteConfig[]) {
+    this.cloudLoggingService.updateCloudLoggingConfigs(configs);
+  }
 
-    expect(hostingSiteService.getSiteConfig('pekachu')).toEmit(config);
-    expect(sitesApi.getConfig).toHaveBeenCalledWith('sites/pekachu/config');
-  });
+  ngOnDestroy() {
+    this.destroy$.next();
+  }
+}
 
-  it('lists channels', () => {
-    const {hostingSiteService, channelsSitesApi} = setup();
-
-    const result = [
-      new Channel({}),
-      new Channel({name: 'Franz Liszt'}),
-    ];
-
-    channelsSitesApi.list.and.returnValue(of(result));
-
-    expect(hostingSiteService.listChannels('pekachu')).toEmit(result);
-    expect(channelsSitesApi.list).toHaveBeenCalledWith('sites/pekachu', {
-      pageSize: 50
-    });
-  });
-
-  it('lists channels releases', () => {
-    const {hostingSiteService, sitesChannelsReleasesApi} = setup();
-
-    const releases = [
-      new Release({}),
-      new Release({name: 'Franz Liszt'}),
-    ];
-
-    sitesChannelsReleasesApi.list.and.returnValue(of({releases}));
-
-    expect(hostingSiteService.listChannelsReleases('pekachu', 'lol'))
-        .toEmit(releases);
-    expect(sitesChannelsReleasesApi.list)
-        .toHaveBeenCalledWith('sites/pekachu/channels/lol');
-  });
-
-  it('update channel', () => {
-    const {hostingSiteService, channelsSitesApi} = setup();
-    const path = 'channel/patch';
-    const url = 'http://lol';
-    const retainedReleaseCount = 10;
-
-    const result = new Channel({
-      name: path,
-      url,
-      retainedReleaseCount,
-    });
-
-    channelsSitesApi.patch.and.returnValue(of(result));
-
-    expect(hostingSiteService.updateChannel(new Channel({
-      name: path,
-      url,
-      retainedReleaseCount,
-    }))).toEmit(result);
-
-    expect(channelsSitesApi.patch)
-        .toHaveBeenCalledWith(
-            path,
-            result,
-            {updateMask: 'expireTime,retainedReleaseCount'},
-        );
-  });
-
-  it('deletes channel', () => {
-    const {hostingSiteService, channelsSitesApi} = setup();
-    const channelName = 'lol';
-
-    channelsSitesApi.delete.and.returnValue(of(Empty));
-
-    expect(hostingSiteService.deleteChannel(channelName)).toEmit(Empty);
-
-    expect(channelsSitesApi.delete)
-        .toHaveBeenCalledWith(
-            channelName,
-        );
-  });
-
-  it('deletes release', () => {
-    const {hostingSiteService, sitesVersionsApi} = setup();
-    const name = 'lol';
-
-    sitesVersionsApi.delete.and.returnValue(of(Empty));
-
-    expect(hostingSiteService.deleteRelease(name)).toEmit(Empty);
-
-    expect(sitesVersionsApi.delete).toHaveBeenCalledWith(name);
-  });
-
-  it('rollbacks release', () => {
-    const {hostingSiteService, sitesReleasesApi} = setup();
-    const parent = 'sites/pirojok';
-    const versionName = 'sites/pirojok/version/kojorip';
-
-    sitesReleasesApi.create.and.returnValue(of(Empty));
-
-    expect(hostingSiteService.rollbackRelease(parent, versionName))
-        .toEmit(Empty);
-
-    expect(sitesReleasesApi.create)
-        .toHaveBeenCalledWith(parent, new Release(), {versionName});
-  });
-
-  it('updates the settings', () => {
-    const {hostingSiteService, sitesApi} = setup();
-    sitesApi.updateConfig.and.returnValue(
-        of(new SiteConfig({maxVersions: NEW_MAX_VERSIONS})));
-
-    expect(hostingSiteService.setRevisionHistoryConfig(
-               'pekachu', NEW_MAX_VERSIONS))
-        .toEmit(NEW_MAX_VERSIONS);
-    expect(sitesApi.updateConfig)
-        .toHaveBeenCalledWith(
-            'sites/pekachu/config',
-            new SiteConfig({maxVersions: NEW_MAX_VERSIONS}),
-            {updateMask: 'maxVersions'});
-  });
-
-  it('updates cloud logging config', () => {
-    const {hostingSiteService, sitesApi} = setup();
-    const result = new SiteConfig({cloudLoggingEnabled: true});
-    sitesApi.updateConfig.and.returnValue(of(result));
-
-    expect(hostingSiteService.updateCloudLoggingConfig(createSiteConfig({
-      siteName: 'pekachu',
-      isCloudLoggingEnabled: true,
-    }))).toEmit(result);
-    expect(sitesApi.updateConfig)
-        .toHaveBeenCalledWith(
-            'sites/pekachu/config', new SiteConfig({cloudLoggingEnabled: true}),
-            {updateMask: 'cloudLoggingEnabled'});
-  });
-
-  it('Lists the site', () => {
-    const {hostingSiteService, projectsHostingApi} = setup();
-    projectsHostingApi.list.and.returnValue(
-        of<DeepPartial<ListHostingSitesResponse>>(SITES));
-
-    expect(hostingSiteService.list()).toEmitSequence([SITES]);
-  });
-
-  describe('linkSiteToWebApp', () => {
-    it('Calls web app request and returns the result', () => {
-      const {hostingSiteService, projectsSitesApi} = setup();
-      const hostingSite = new HostingSite();
-      projectsSitesApi.webApp.and.returnValue(of(hostingSite));
-
-      expect(hostingSiteService.linkSiteToWebApp(SITE, 'b')).toEmitSequence([
-        hostingSite
-      ]);
-      expect(projectsSitesApi.webApp).toHaveBeenCalled();
-    });
-  });
-});
-         `
+  `
 );
 
 function getInitialState() {
@@ -285,12 +119,6 @@ function getInitialState() {
             'index.ts': {
                 tree,
                 selectedNode: tree,
-                code: `const add = (a, b) => {
-                return a + b;
-                }
-                console.log(add(4, 5));
-                `
-
             },
             'index.html': {
                 code: '<root id = root>',
@@ -298,7 +126,7 @@ function getInitialState() {
             },
             'banan.html': {
                 type: 'html',
-                code: '<root id = root>',
+                code: importHtml(`<root id = root><div></div></root>`),
                 selectedNodeKey: 'root',
             },
         }
