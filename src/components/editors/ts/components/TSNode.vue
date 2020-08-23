@@ -1,50 +1,41 @@
 <template>
-  <span v-if="true" :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName">
+  <span :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName">
     <template v-if="!isArray">
-      <Component v-if="component" :is="component" :nodeName="nodeName" :node="node"/>
+      <component v-if="component" :is="component" :nodeName="nodeName" :node="node"/>
     </template>
     <template v-if="isArray">
-      <TSNodeList :nodes="node" :separator="separator"/>
+        <TSNodeList :nodes="node" :separator="separator"/>
     </template>
   </span>
 </template>
 
 
 <script>
-    import Vue from 'vue';
     import Unknown from "@/components/editors/ts/components/Unknown";
     import {kindMap} from "@/components/editors/ts/components/kindMap";
     import {mapGetters, mapMutations} from "vuex";
+    import {h} from "vue";
 
     function simpleNode(name, callback, wrapper = 'span') {
-        return Vue.component(name, {
-            functional: true,
-            render: function (createElement, {props}) {
-                const node = createElement('TSNode', {props: {node: callback(props)}});
-
-                return wrapper ? createElement(wrapper, null, [
-                    node,
-                ]) : node;
-            },
-            props: ['node'],
-        })
+        return function (props) {
+            const node = h(TSNode, {node: callback(props)});
+            return wrapper ? h(wrapper, null, [
+                node,
+            ]) : node;
+        };
     }
 
 
     function simpleTemplate(name, render) {
-        return Vue.component(name, {
-            functional: true,
-            render,
-            props: ['node'],
-        })
+        return render;
     }
 
     function simpleText(name, text) {
-        return simpleTemplate(name, function (createElement, {props}) {
+        return simpleTemplate(name, function (props) {
             if (typeof text === 'function') {
                 text = text(props.node);
             }
-            return createElement('span', null, text);
+            return h('span', null, text);
         },)
     }
 
@@ -52,16 +43,14 @@
         Unknown,
         VariableDeclarationList: () => import('@/components/editors/ts/components/VariableDeclarationList'),
         VariableDeclaration: () => import('@/components/editors/ts/components/VariableDeclaration'),
-        Identifier: () => import('@/components/editors/ts/components/Identifier'),
-        ArrowFunction: () => import('@/components/editors/ts/components/ArrowFunction'),
         BinaryExpression: () => import('@/components/editors/ts/components/BinaryExpression'),
-        TSNodeList: () => import('@/components/editors/ts/components/TSNodeList'),
         PlusToken: simpleText('PlusToken', '+'),
         EqualsEqualsEqualsToken: simpleText('EqualsEqualsEqualsToken', '+'),
         EqualsToken: simpleText('EqualsToken', '+'),
         LessThanToken: simpleText('LessThanToken', '<'),
         AsteriskToken: simpleText('AsteriskToken', '*'),
         ThisKeyword: simpleText('ThisKeyword', 'this'),
+        BooleanKeyword: simpleText('BooleanKeyword', 'boolean'),
         AnyKeyword: simpleText('AnyKeyword', 'any'),
         VoidKeyword: simpleText('VoidKeyword', 'void'),
         ImportKeyword: simpleText('ImportKeyword', 'import'),
@@ -75,59 +64,50 @@
         ReadonlyKeyword: simpleText('ReadonlyKeyword', 'readonly '),
         TrueKeyword: simpleText('TrueKeyword', 'true'),
         NullKeyword: simpleText('NullKeyword', 'null'),
-        CallExpression: Vue.component('CallExpression', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('span', null, [
-                    createElement('TSNode', {props: {node: props.node.expression}}),
-                    '(',
-                    createElement('TSNodeList', {props: {nodes: props.node.arguments}}),
-                    ')',
-                ]);
-            },
-            props: ['node'],
-        }),
+        CallExpression(props) {
+            return h('span', null, [
+                h(TSNode, {node: props.node.expression}),
+                '(',
+                h(TSNode, {node: props.node.arguments}),
+                ')',
+            ]);
+        },
+
+        PropertyAccessExpression(props) {
+            return h('span', null, [
+                h(TSNode, {node: props.node.expression}),
+                '.',
+                h(TSNode, {node: props.node.name}),
+            ]);
+        },
+        ArrowFunction(props) {
+            return h('span', null, [
+                '(',
+                h(TSNode, {node: props.node.parameters}),
+                ')=>',
+                h(TSNode, {node: props.node.body}),
+            ]);
+        },
+
+        ImportDeclaration(props) {
+            return h('div', null, [
+                'import ',
+                h(TSNode, {node: props.node.importClause}),
+                ' from ',
+                h(TSNode, {node: props.node.moduleSpecifier}),
+            ]);
+        },
 
 
-        PropertyAccessExpression: Vue.component('PropertyAccessExpression', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('span', null, [
-                    createElement('TSNode', {props: {node: props.node.expression}}),
-                    '.',
-                    createElement('TSNode', {props: {node: props.node.name}}),
-                ]);
-            },
-            props: ['node'],
-        }),
-        ImportDeclaration: Vue.component('ImportDeclaration', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('div', null, [
-                    'import ',
-                    createElement('TSNode', {props: {node: props.node.importClause}}),
-                    ' from ',
-                    createElement('TSNode', {props: {node: props.node.moduleSpecifier}}),
-                ]);
-            },
-            props: ['node'],
-        }),
+        NumericLiteral(props) {
+            return h('span', null, props.node.text);
+        },
 
-        NumericLiteral: Vue.component('NumericLiteral', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('span', null, props.node.text);
-            },
-            props: ['node'],
-        }),
-        StringLiteral: Vue.component('StringLiteral', {
-            functional: true,
-            render: function (createElement, {props}) {
+        StringLiteral(props) {
 
-                return createElement('span', null, '\'' + props.node.text + '\'');
-            },
-            props: ['node'],
-        }),
+            return h('span', null, '\'' + props.node.text + '\'');
+        },
+
         ExpressionStatement: simpleNode('ExpressionStatement', ({node}) => node.expression, 'div'),
         VariableStatement: simpleNode('VariableStatement', ({node}) => node.declarationList, 'div'),
 
@@ -135,311 +115,320 @@
         Block: simpleNode('Block', ({node}) => node.statements, 'div'),
         SourceFile: simpleNode('SourceFile', ({node}) => node.statements, 'div'),
 
+        //     (props) => {
+        //     return h('b', {class: 'lol'}, 'HOHO');
+        // },
+        //simpleNode('SourceFile', ({node}) => node.statements, 'div'),
+
         ImportClause: simpleNode('ImportClause', ({node}) => node.name || node.namedBindings),
         ExportAssignment: simpleNode('ExportAssignment', ({node}) => node.expression),
 
 
-        NamedImports: simpleTemplate('NamedImports', function (createElement, {props}) {
-            return createElement('span', null, [
+        NamedImports: simpleTemplate('NamedImports', function (props) {
+            return h('span', null, [
                 '{',
-                createElement('TSNode', {props: {node: props.node.elements, separator: ', '}}),
+                h(TSNode, {node: props.node.elements, separator: ', '}),
                 '}'
             ]);
         }),
-        ImportSpecifier: simpleTemplate('ImportSpecifier', function (createElement, {props}) {
-            return createElement('span', null, [
-                createElement('TSNode', {props: {node: props.node.name}}),
+        ImportSpecifier: simpleTemplate('ImportSpecifier', function (props) {
+            return h('span', null, [
+                h(TSNode, {node: props.node.name}),
             ]);
         }),
-        PropertyAssignment: simpleTemplate('PropertyAssignment', function (createElement, {props}) {
-            return createElement('div', null, [
-                createElement('TSNode', {props: {node: props.node.name}}),
+        PropertyAssignment: simpleTemplate('PropertyAssignment', function (props) {
+            return h('div', null, [
+                h(TSNode, {node: props.node.name}),
                 ':',
-                createElement('TSNode', {props: {node: props.node.initializer}}),
+                h(TSNode, {node: props.node.initializer}),
+            ]);
+        }),
+
+        Identifier: simpleTemplate('Identifier', function (props) {
+            return h('span', null, [
+                props.node.text
             ]);
         }),
 
 
-        ElementAccessExpression: simpleTemplate('ElementAccessExpression', function (createElement, {props}) {
-            return createElement('div', null, [
-                createElement('TSNode', {props: {node: props.node.expression}}),
+        ElementAccessExpression: simpleTemplate('ElementAccessExpression', function (props) {
+            return h('div', null, [
+                h(TSNode, {node: props.node.expression}),
                 '[',
-                createElement('TSNode', {props: {node: props.node.argumentExpression}}),
+                h(TSNode, {node: props.node.argumentExpression}),
                 ']'
             ]);
         }),
-        SpreadAssignment: simpleTemplate('SpreadAssignment', function (createElement, {props}) {
-            return createElement('div', null, [
+        SpreadAssignment: simpleTemplate('SpreadAssignment', function (props) {
+            return h('div', null, [
                 '...',
-                createElement('TSNode', {props: {node: props.node.expression}}),
+                h(TSNode, {node: props.node.expression}),
             ]);
         }),
 
-        ReturnStatement: simpleTemplate('ReturnStatement', function (createElement, {props}) {
-            return createElement('div', null, [
+        ReturnStatement: simpleTemplate('ReturnStatement', function (props) {
+            return h('div', null, [
                 'return ',
-                props.node.expression ? createElement('TSNode', {props: {node: props.node.expression}}) : '',
+                props.node.expression ? h(TSNode, {node: props.node.expression}) : '',
             ]);
         }),
 
 
-        ArrayLiteralExpression: simpleTemplate('ArrayLiteralExpression', function (createElement, {props}) {
-            return createElement('div', null, [
+        ArrayLiteralExpression: simpleTemplate('ArrayLiteralExpression', function (props) {
+            return h('div', null, [
                 '[',
-                createElement('TSNode', {props: {node: props.node.elements}}),
+                h(TSNode, {node: props.node.elements}),
                 ']'
             ]);
         }),
-        TypeOfExpression: simpleTemplate('TypeOfExpression', function (createElement, {props}) {
-            return createElement('div', null, [
+        TypeOfExpression: simpleTemplate('TypeOfExpression', function (props) {
+            return h('div', null, [
                 'typeof ',
-                createElement('TSNode', {props: {node: props.node.expression}}),
+                h(TSNode, {node: props.node.expression}),
             ]);
         }),
-        JSDocComment: simpleTemplate('JSDocComment', function (createElement, {props}) {
-            return createElement('div', null, [
+        JSDocComment: simpleTemplate('JSDocComment', function (props) {
+            return h('div', null, [
                 '/** ',
                 props.node.comment,
                 '*/',
             ]);
         }),
 
-        BindingElement: simpleTemplate('BindingElement', function (createElement, {props}) {
-            return createElement('div', null, [
+        BindingElement: simpleTemplate('BindingElement', function (props) {
+            return h('div', null, [
                 '{',
-                createElement('TSNode', {props: {node: props.node.name}}),
+                h(TSNode, {node: props.node.name}),
                 '}',
                 props.node.initializer ? 'TODO: Initializer' : '',
             ]);
         }),
 
-        ObjectBindingPattern: simpleTemplate('ObjectBindingPattern', function (createElement, {props}) {
-            return createElement('div', null, [
+        ObjectBindingPattern: simpleTemplate('ObjectBindingPattern', function (props) {
+            return h('div', null, [
                 '[',
-                createElement('TSNode', {props: {node: props.node.elements}}),
+                h(TSNode, {node: props.node.elements}),
                 ']'
             ]);
         }),
 
 
-        IfStatement: simpleTemplate('ArrayLiteralExpression', function (createElement, {props}) {
-            return createElement('div', null, [
+        IfStatement: simpleTemplate('ArrayLiteralExpression', function (props) {
+            return h('div', null, [
                 'if(',
-                createElement('TSNode', {props: {node: props.node.expression}}),
+                h(TSNode, {node: props.node.expression}),
                 ') {',
-                createElement('TSNode', {props: {node: props.node.thenStatement}}),
+                h(TSNode, {node: props.node.thenStatement}),
                 '} ',
                 props.node.elseStatement ? ' else { ' : '',
-                props.node.elseStatement ? createElement('TSNode', {props: {node: props.node.elseStatement}}) : '',
+                props.node.elseStatement ? h(TSNode, {node: props.node.elseStatement}) : '',
                 props.node.elseStatement ? '}' : '',
             ]);
         }),
 
 
-        FunctionExpression: simpleTemplate('FunctionExpression', function (createElement, {props}) {
-            return createElement('div', null, [
+        FunctionExpression: simpleTemplate('FunctionExpression', function (props) {
+            return h('div', null, [
                 'function',
-                props.node.name ? createElement('TSNode', {props: {node: props.node.name}}) : '',
+                props.node.name ? h(TSNode, {node: props.node.name}) : '',
                 '(',
-                createElement('TSNode', {props: {node: props.node.parameters}}),
+                h(TSNode, {node: props.node.parameters}),
                 ') {',
-                createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.body}})]),
+                h('div', {class: 'p20'}, [h(TSNode, {node: props.node.body})]),
                 '}',
             ]);
         }),
 
-        MethodDeclaration: simpleTemplate('MethodDeclaration', function (createElement, {props}) {
-            return createElement('div', null, [
-                createElement('TSNode', {props: {node: props.node.name}}),
+        MethodDeclaration: simpleTemplate('MethodDeclaration', function (props) {
+            return h('div', null, [
+                h(TSNode, {node: props.node.name}),
                 '(',
-                createElement('TSNode', {props: {node: props.node.parameters}}),
+                h(TSNode, {node: props.node.parameters}),
                 ') {',
-                createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.body}})]),
+                h('div', {class: 'p20'}, [h(TSNode, {node: props.node.body})]),
                 '}',
             ]);
         }),
 
 
-        ConditionalExpression: simpleTemplate('ConditionalExpression', function (createElement, {props}) {
-            return createElement('div', null, [
+        ConditionalExpression: simpleTemplate('ConditionalExpression', function (props) {
+            return h('div', null, [
                 props.node.condition,
                 '?',
-                createElement('TSNode', {props: {node: props.node.whenFalse}}),
+                h(TSNode, {node: props.node.whenFalse}),
                 ':',
-                createElement('TSNode', {props: {node: props.node.whenTrue}})
+                h(TSNode, {node: props.node.whenTrue})
             ]);
         }),
 
 
-        FunctionDeclaration: Vue.component('FunctionDeclaration', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('div', null, [
-                    'function ',
-                    props.node.name ? createElement('TSNode', {props: {node: props.node.name}}) : '',
-                    '(',
-                    createElement('TSNode', {props: {node: props.node.parameters}}),
-                    ') {',
-                    createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.body}})]),
-                    '}',
-                ]);
-            },
-            props: ['node'],
-        }),
+        FunctionDeclaration(props) {
+            return h('div', null, [
+                'function ',
+                props.node.name ? h(TSNode, {node: props.node.name}) : '',
+                '(',
+                h(TSNode, {node: props.node.parameters}),
+                ') {',
+                h('div', {class: 'p20'}, [h(TSNode, {node: props.node.body})]),
+                '}',
+            ]);
+        },
 
 
-        ClassDeclaration: simpleTemplate('ClassDeclaration', function (createElement, {props}) {
+        ClassDeclaration: simpleTemplate('ClassDeclaration', function (props) {
             console.assert(props.node.members);
-            return createElement('div', null, [
-                props.node.jsDoc && createElement('TSNode', {props: {node: props.node.jsDoc}}),
+            return h('div', null, [
+                props.node.jsDoc && h(TSNode, {node: props.node.jsDoc}),
                 'class ',
-                props.node.name ? createElement('TSNode', {props: {node: props.node.name}}) : '',
-                props.node.heritageClauses && createElement('TSNode', {props: {node: props.node.heritageClauses}}),
+                props.node.name ? h(TSNode, {node: props.node.name}) : '',
+                props.node.heritageClauses && h(TSNode, {node: props.node.heritageClauses}),
                 ' {',
-                createElement('div', {class: 'p20'}, [createElement('TSNode', {props: {node: props.node.members}})]),
+                h('div', {class: 'p20'}, [h(TSNode, {node: props.node.members})]),
                 '}',
 
             ]);
         }),
 
 
-        ObjectLiteralExpression: Vue.component('ObjectLiteralExpression', {
-            functional: true,
-            render: function (createElement, {props}) {
-                return createElement('span', null, [
-                    '{',
-                    createElement(props.node.properties.length ? 'div' : 'span', {'class': 'p20'}, [
-                        createElement('TSNode', {props: {node: props.node.properties}}),
-                    ]),
-                    '}'
-                ]);
-            },
-            props: ['node'],
-        }),
+        ObjectLiteralExpression(props) {
+            return h('span', null, [
+                '{',
+                h(props.node.properties.length ? 'div' : 'span', {'class': 'p20'}, [
+                    h(TSNode, {node: props.node.properties}),
+                ]),
+                '}'
+            ]);
+        },
 
 
-        TypeAliasDeclaration: simpleTemplate('TypeAliasDeclaration', function (createElement, {props}) {
-            return createElement('div', null, [
+        TypeAliasDeclaration: simpleTemplate('TypeAliasDeclaration', function (props) {
+            return h('div', null, [
                 'type ',
-                createElement('TSNode', {props: {node: props.node.name}}),
+                h(TSNode, {node: props.node.name}),
                 ' = ',
-                createElement('TSNode', {props: {node: props.node.type}}),
+                h(TSNode, {node: props.node.type}),
 
             ]);
         }),
-        ArrayBindingPattern: simpleTemplate('ArrayBindingPattern', function (createElement) {
-            return createElement('span', null, [
+        ArrayBindingPattern: simpleTemplate('ArrayBindingPattern', function () {
+            return h('span', null, [
                 '$arraybind$',
             ]);
         }),
 
-        FunctionType: simpleTemplate('FunctionType', function (createElement, {props}) {
-            return createElement('span', null, [
+        ArrayType: simpleTemplate('ArrayType', function () {
+            return h('span', null, [
+                '$arrayType$',
+            ]);
+        }),
+
+        FunctionType: simpleTemplate('FunctionType', function (props) {
+            return h('span', null, [
                 '(',
-                createElement('TSNode', {props: {node: props.node.parameters}}),
+                h(TSNode, {node: props.node.parameters}),
                 ') :',
-                createElement('TSNode', {props: {node: props.node.type}}),
+                h(TSNode, {node: props.node.type}),
 
             ]);
         }),
 
-        ExpressionWithTypeArguments: simpleTemplate('ExpressionWithTypeArguments', function (createElement, {props}) {
+        ExpressionWithTypeArguments: simpleTemplate('ExpressionWithTypeArguments', function (props) {
             console.assert(props.node.expression);
-            return createElement('span', null, [
-                createElement('TSNode', {props: {node: props.node.expression}}),
-                props.node.types && createElement('TSNode', {props: {node: props.node.types}}),
+            return h('span', null, [
+                h(TSNode, {node: props.node.expression}),
+                props.node.types && h(TSNode, {node: props.node.types}),
             ]);
         }),
 
 
-        Constructor: simpleTemplate('Constructor', function (createElement, {props}) {
+        Constructor: simpleTemplate('Constructor', function (props) {
             console.assert(props.node.parameters);
             console.assert(props.node.body);
-            return createElement('div', null, [
-                props.node.modifiers && createElement('TSNode', {props: {node: props.node.modifiers}}),
+            return h('div', null, [
+                props.node.modifiers && h(TSNode, {node: props.node.modifiers}),
                 'constructor (',
-                createElement('TSNode', {props: {node: props.node.parameters}}),
-                props.node.typeParameters && createElement('TSNode', {props: {node: props.node.typeParameters}}),
+                h(TSNode, {node: props.node.parameters}),
+                props.node.typeParameters && h(TSNode, {node: props.node.typeParameters}),
                 ') {',
-                props.node.body && createElement('TSNode', {props: {node: props.node.body}}),
+                props.node.body && h(TSNode, {node: props.node.body}),
                 '}',
             ]);
         }),
 
-        Parameter: simpleTemplate('Parameter', function (createElement, {props}) {
+        Parameter: simpleTemplate('Parameter', function (props) {
             console.assert(props.node.name);
             console.assert(!props.node.initializer);
-            return createElement('span', null, [
-                createElement('TSNode', {props: {node: props.node.name}}),
+            return h('span', null, [
+                h(TSNode, {node: props.node.name}),
                 ':',
-                props.node.type && createElement('TSNode', {props: {node: props.node.type}}),
+                props.node.type && h(TSNode, {node: props.node.type}),
             ]);
         }),
 
-        PrefixUnaryExpression: simpleTemplate('PrefixUnaryExpression', function (createElement, {props}) {
+        PrefixUnaryExpression: simpleTemplate('PrefixUnaryExpression', function (props) {
             console.assert(props.node.operator === 53);
             console.assert(props.node.operand);
-            return createElement('span', null, [
+            return h('span', null, [
                 '!',
-                createElement('TSNode', {props: {node: props.node.operand}}),
+                h(TSNode, {node: props.node.operand}),
             ]);
         }),
 
-        PropertyDeclaration: simpleTemplate('PropertyDeclaration', function (createElement, {props}) {
+        PropertyDeclaration: simpleTemplate('PropertyDeclaration', function (props) {
             console.assert(props.node.name);
-            return createElement('div', null, [
-                props.node.modifiers && createElement('TSNode', {props: {node: props.node.modifiers}}),
-                createElement('TSNode', {props: {node: props.node.name}}),
+            return h('div', null, [
+                props.node.modifiers && h(TSNode, {node: props.node.modifiers}),
+                h(TSNode, {node: props.node.name}),
                 ' = ',
-                props.node.type && createElement('TSNode', {props: {node: props.node.type}}),
-                props.node.initializer && createElement('TSNode', {props: {node: props.node.initializer}}),
+                props.node.type && h(TSNode, {node: props.node.type}),
+                props.node.initializer && h(TSNode, {node: props.node.initializer}),
             ]);
         }),
 
-        NewExpression: simpleTemplate('NewExpression', function (createElement, {props}) {
+        NewExpression: simpleTemplate('NewExpression', function (props) {
             console.assert(props.node.arguments);
             console.assert(props.node.expression);
 
-            return createElement('span', null, [
+            return h('span', null, [
                 'new ',
-                createElement('TSNode', {props: {node: props.node.expression}}),
+                h(TSNode, {node: props.node.expression}),
                 '(',
-                createElement('TSNode', {props: {node: props.node.arguments}}),
+                h(TSNode, {node: props.node.arguments}),
                 ')',
-                props.node.typeArguments && createElement('TSNode', {props: {node: props.node.typeArguments}}),
+                props.node.typeArguments && h(TSNode, {node: props.node.typeArguments}),
             ]);
         }),
-        TypeReference: simpleTemplate('TypeReference', function (createElement, {props}) {
+        TypeReference: simpleTemplate('TypeReference', function (props) {
             console.assert(props.node.typeName);
 
-            return createElement('span', null, [
-                createElement('TSNode', {props: {node: props.node.typeName}}),
+            return h('span', null, [
+                h(TSNode, {node: props.node.typeName}),
             ]);
         }),
-        TypeLiteral: simpleTemplate('TypeLiteral', function (createElement) {
+        TypeLiteral: simpleTemplate('TypeLiteral', function () {
             // console.assert(props.node.typeName);
 
-            return createElement('span', null, [
+            return h('span', null, [
                 '{$TL$}'
             ]);
         }),
 
-        AsExpression: simpleTemplate('TypeLiteral', function (createElement, {props}) {
+        AsExpression: simpleTemplate('TypeLiteral', function (props) {
             console.assert(props.node.expression);
             console.assert(props.node.type);
 
-            return createElement('span', null, [
-                createElement('TSNode', {props: {node: props.node.expression}}),
+            return h('span', null, [
+                h(TSNode, {node: props.node.expression}),
                 ' as ',
-                createElement('TSNode', {props: {node: props.node.type}}),
+                h(TSNode, {node: props.node.type}),
             ]);
         }),
 
 
-        HeritageClause: simpleTemplate('HeritageClause', function (createElement, {props}) {
-            return createElement('span', null, [
+        HeritageClause: simpleTemplate('HeritageClause', function (props) {
+            return h('span', null, [
                 'implements ',
-                createElement('TSNode', {props: {node: props.node.types}}),
+                h(TSNode, {node: props.node.types}),
             ]);
         }),
     };
@@ -463,6 +452,9 @@
             selected() {
                 return this.selectedNode === this.node;
             }
+        },
+        mounted() {
+            //debugger;
         },
         methods: {
             ...mapMutations(['selectNode']),

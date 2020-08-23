@@ -7,20 +7,15 @@
 
 <script>
     import TSNode from "@/components/editors/ts/components/TSNode";
-    import {mapGetters} from "vuex";
 
     export default {
         name: "TsEditor",
         components: {TSNode},
         props: ['tree'],
-        computed: {
-            ...mapGetters('selectedFile')
-        },
         data() {
             return {}
         },
         mounted() {
-
         }
     }
 </script>
@@ -37,6 +32,7 @@
   [data-node="Identifier"] {
     color: rgba(114, 114, 124, 0.86);
   }
+
   [data-node="StringLiteral"] {
     color: #076a4a;
   }

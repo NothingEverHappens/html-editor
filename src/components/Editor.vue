@@ -37,13 +37,13 @@
         components: {HtmlEditor, Files, Shortcuts, Preview, TsEditor},
         created() {
             this.fileTypes = fileTypes;
-            this.executeAction({type: 'goChild', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'goNext', tag: 'div'});
-            this.executeAction({type: 'jumpToProperty'});
+            // this.executeAction({type: 'goChild', tag: 'div'});
+            // this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'goNext', tag: 'div'});
+            // this.executeAction({type: 'jumpToProperty'});
             // this.executeAction({type: 'goChild', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});
             // this.executeAction({type: 'addDiv', tag: 'div'});

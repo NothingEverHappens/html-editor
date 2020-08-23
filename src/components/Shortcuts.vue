@@ -24,6 +24,7 @@
             ...mapGetters(['tree', 'state', 'inputFocused']),
             actions() {
                 const actions = editorActions.getActions(this.state, this.filter);
+                console.assert(false);
                 return actions;
             },
             ...mapFields(['filter']),
