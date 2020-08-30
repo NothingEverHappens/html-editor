@@ -7,7 +7,7 @@
 </template>
 
 <script>
-    import {mapGetters, mapMutations} from "vuex";
+    import {mapGetters, mapMutations, mapActions} from "vuex";
 
     export default {
         name: "Files",
@@ -17,6 +17,12 @@
         methods: {
             ...mapMutations(['selectFileName'])
         },
+        actions: {
+            ...mapActions(['fetchFiles'])
+        },
+        mounted(){
+            this.$store.dispatch('fetchFiles');
+        }
     }
 </script>
 

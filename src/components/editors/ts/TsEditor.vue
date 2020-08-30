@@ -36,6 +36,10 @@
   [data-node="StringLiteral"] {
     color: #076a4a;
   }
+  [data-node="MethodDeclaration"] {
+    margin-top: 20px;
+    display: block;
+  }
 
 
   .ts-editor-wrapper {

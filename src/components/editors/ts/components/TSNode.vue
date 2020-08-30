@@ -1,6 +1,8 @@
 <template>
-  <span :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName">
+  <span :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName"
+        style="outline: 1px rgba(221,219,220,0.36) solid; padding: 1px;display: inline-block;position: relative;10px;">
     <template v-if="!isArray">
+<!--      <span style="background: #ddd;position: absolute; left: 0; top: 50%;margin-top:-10px;border-radius: 50%"></span>-->
       <component v-if="component" :is="component" :nodeName="nodeName" :node="node"/>
     </template>
     <template v-if="isArray">
@@ -10,11 +12,12 @@
 </template>
 
 
-<script>
+<script type="text/jsx">
     import Unknown from "@/components/editors/ts/components/Unknown";
     import {kindMap} from "@/components/editors/ts/components/kindMap";
     import {mapGetters, mapMutations} from "vuex";
     import {h} from "vue";
+    import {getVariableDeclarationKind} from "tsutils";
 
     function simpleNode(name, callback, wrapper = 'span') {
         return function (props) {
@@ -26,44 +29,50 @@
     }
 
 
-    function simpleTemplate(name, render) {
-        return render;
-    }
-
-    function simpleText(name, text) {
-        return simpleTemplate(name, function (props) {
+    function simpleText(text) {
+        return function (props) {
             if (typeof text === 'function') {
                 text = text(props.node);
             }
             return h('span', null, text);
-        },)
+        }
     }
+
+    const declarationKindMap = {
+        [0]: 'TODO',
+        [1]: 'TODO',
+        [2]: 'const'
+    };
+
 
     const components = {
         Unknown,
-        VariableDeclarationList: () => import('@/components/editors/ts/components/VariableDeclarationList'),
-        VariableDeclaration: () => import('@/components/editors/ts/components/VariableDeclaration'),
-        BinaryExpression: () => import('@/components/editors/ts/components/BinaryExpression'),
-        PlusToken: simpleText('PlusToken', '+'),
-        EqualsEqualsEqualsToken: simpleText('EqualsEqualsEqualsToken', '+'),
-        EqualsToken: simpleText('EqualsToken', '+'),
-        LessThanToken: simpleText('LessThanToken', '<'),
-        AsteriskToken: simpleText('AsteriskToken', '*'),
-        ThisKeyword: simpleText('ThisKeyword', 'this'),
-        BooleanKeyword: simpleText('BooleanKeyword', 'boolean'),
-        AnyKeyword: simpleText('AnyKeyword', 'any'),
-        VoidKeyword: simpleText('VoidKeyword', 'void'),
-        ImportKeyword: simpleText('ImportKeyword', 'import'),
-        BarBarToken: simpleText('BarBarToken', '||'),
-        AmpersandAmpersandToken: simpleText('AmpersandAmpersandToken', '&&'),
-        DebuggerStatement: simpleText('DebuggerStatement', 'debugger'),
-        ColonToken: simpleText('ColonToken', ':'),
-        NoSubstitutionTemplateLiteral: simpleText('NoSubstitutionTemplateLiteral', node => `\`${node.text}\``),
-        FalseKeyword: simpleText('FalseKeyword', 'false'),
-        PrivateKeyword: simpleText('PrivateKeyword', 'private'),
-        ReadonlyKeyword: simpleText('ReadonlyKeyword', 'readonly '),
-        TrueKeyword: simpleText('TrueKeyword', 'true'),
-        NullKeyword: simpleText('NullKeyword', 'null'),
+        PlusToken: () => '+',
+        EqualsEqualsEqualsToken: () => '===',
+        ExclamationEqualsEqualsToken: () => '!==',
+        EqualsToken: () => '=',
+        MinusToken: () => '-',
+        LessThanToken: () => '<',
+        GreaterThanToken: () => '>',
+        SlashToken: () => '/',
+        AsteriskToken: () => '*',
+        ThisKeyword: () => 'this',
+        InKeyword: () => 'in',
+        StringKeyword: () => 'string',
+        BooleanKeyword: () => 'boolean',
+        AnyKeyword: () => 'any',
+        VoidKeyword: () => 'void',
+        ImportKeyword: () => 'import',
+        BarBarToken: () => '||',
+        AmpersandAmpersandToken: () => '&&',
+        DebuggerStatement: () => 'debugger',
+        ColonToken: () => ':',
+        NoSubstitutionTemplateLiteral: simpleText(node => `\`${node.text}\``),
+        FalseKeyword: () => 'false',
+        PrivateKeyword: () => 'private',
+        ReadonlyKeyword: () => 'readonly ',
+        TrueKeyword: () => 'true',
+        NullKeyword: () => 'null',
         CallExpression(props) {
             return h('span', null, [
                 h(TSNode, {node: props.node.expression}),
@@ -80,12 +89,23 @@
                 h(TSNode, {node: props.node.name}),
             ]);
         },
-        ArrowFunction(props) {
+        ArrowFunction({node}) {
+            return <span>
+                {'('}
+                <TSNode node={node.parameters} separator=","/>
+                {'}'}
+                {'=>'}
+                <TSNode node={node.body}/>
+            </span>;
+        },
+        BinaryExpression({node}) {
+            console.assert(node.left);
+            console.assert(node.right);
+            console.assert(node.operatorToken);
             return h('span', null, [
-                '(',
-                h(TSNode, {node: props.node.parameters}),
-                ')=>',
-                h(TSNode, {node: props.node.body}),
+                h(TSNode, {node: node.left}),
+                h(TSNode, {node: node.operatorToken}),
+                h(TSNode, {node: node.right}),
             ]);
         },
 
@@ -99,12 +119,11 @@
         },
 
 
-        NumericLiteral(props) {
-            return h('span', null, props.node.text);
+        NumericLiteral({node}) {
+            return <span>{node.text}</span>
         },
 
         StringLiteral(props) {
-
             return h('span', null, '\'' + props.node.text + '\'');
         },
 
@@ -112,7 +131,7 @@
         VariableStatement: simpleNode('VariableStatement', ({node}) => node.declarationList, 'div'),
 
         ShorthandPropertyAssignment: simpleNode('ShorthandPropertyAssignment', ({node}) => node.name),
-        Block: simpleNode('Block', ({node}) => node.statements, 'div'),
+
         SourceFile: simpleNode('SourceFile', ({node}) => node.statements, 'div'),
 
         //     (props) => {
@@ -124,96 +143,153 @@
         ExportAssignment: simpleNode('ExportAssignment', ({node}) => node.expression),
 
 
-        NamedImports: simpleTemplate('NamedImports', function (props) {
+        NamedImports: function (props) {
             return h('span', null, [
                 '{',
                 h(TSNode, {node: props.node.elements, separator: ', '}),
                 '}'
             ]);
-        }),
-        ImportSpecifier: simpleTemplate('ImportSpecifier', function (props) {
+        },
+        ImportSpecifier: function (props) {
             return h('span', null, [
                 h(TSNode, {node: props.node.name}),
             ]);
-        }),
-        PropertyAssignment: simpleTemplate('PropertyAssignment', function (props) {
+        },
+        PropertyAssignment: function (props) {
             return h('div', null, [
                 h(TSNode, {node: props.node.name}),
-                ':',
+                ': ',
                 h(TSNode, {node: props.node.initializer}),
             ]);
-        }),
+        },
 
-        Identifier: simpleTemplate('Identifier', function (props) {
+        ThrowStatement: function ({node}) {
+            console.assert(node.expression);
+            return <div>throw <TSNode node={node.expression}/></div>;
+        },
+        SpreadElement: function ({node}) {
+            console.assert(node.expression);
+            return <span>...<TSNode node={node.expression}/></span>;
+        },
+        ParenthesizedExpression: function ({node}) {
+            console.assert(node.expression);
+            return <span>(<TSNode node={node.expression}/>)</span>;
+        },
+        NonNullExpression: function ({node}) {
+            console.assert(node.expression);
             return h('span', null, [
-                props.node.text
+                '',
+                h(TSNode, {node: node.expression}),
+                '🧨',
             ]);
-        }),
+        },
+
+        AwaitExpression: function ({node}) {
+            console.assert(node.expression);
+            return h('span', null, [
+                '⏱',
+                h(TSNode, {node: node.expression}),
+            ]);
+        },
+        PostfixUnaryExpression: function ({node}) {
+            console.assert(node.operand);
+            console.assert(node.operator === 45);
+
+            return h('span', null, [
+                '$PUE$',
+                h(TSNode, {node: node.operand}),
+            ]);
+        },
+
+        Identifier: function ({node}) {
+            return <span>{node.text}</span>;
+        },
+
+        RegularExpressionLiteral: function ({node}) {
+            return <span>{node.text}</span>;
+        },
 
 
-        ElementAccessExpression: simpleTemplate('ElementAccessExpression', function (props) {
-            return h('div', null, [
+        ElementAccessExpression: function (props) {
+            return h('span', null, [
                 h(TSNode, {node: props.node.expression}),
                 '[',
                 h(TSNode, {node: props.node.argumentExpression}),
                 ']'
             ]);
-        }),
-        SpreadAssignment: simpleTemplate('SpreadAssignment', function (props) {
-            return h('div', null, [
-                '...',
-                h(TSNode, {node: props.node.expression}),
-            ]);
-        }),
-
-        ReturnStatement: simpleTemplate('ReturnStatement', function (props) {
-            return h('div', null, [
-                'return ',
-                props.node.expression ? h(TSNode, {node: props.node.expression}) : '',
-            ]);
-        }),
+        },
 
 
-        ArrayLiteralExpression: simpleTemplate('ArrayLiteralExpression', function (props) {
-            return h('div', null, [
-                '[',
-                h(TSNode, {node: props.node.elements}),
-                ']'
-            ]);
-        }),
-        TypeOfExpression: simpleTemplate('TypeOfExpression', function (props) {
-            return h('div', null, [
+        SpreadAssignment: function ({node}) {
+            return <div>...<TSNode node={node.expression}/></div>;
+        },
+
+        ReturnStatement: function ({node}) {
+            return <div>return <TSNode node={node.expression}/></div>;
+        },
+
+
+        ArrayLiteralExpression: function ({node}) {
+            return <div>[<TSNode node={node.expression}/>]</div>;
+        },
+        TypeOfExpression: function (props) {
+            return h('span', null, [
                 'typeof ',
                 h(TSNode, {node: props.node.expression}),
             ]);
-        }),
-        JSDocComment: simpleTemplate('JSDocComment', function (props) {
+        },
+        VariableDeclarationList: function ({node}) {
+            console.assert(node.declarations);
+            const kind = declarationKindMap[getVariableDeclarationKind(node)];
+            return h('span', null, [
+                kind, ' ',
+                h(TSNode, {node: node.declarations}),
+            ]);
+        },
+        VariableDeclaration: function ({node}) {
+            console.assert(node.name);
+            console.assert(node.initializer);
+
+            return h('span', null, [
+                h(TSNode, {node: node.name}),
+                ' = ',
+                h(TSNode, {node: node.initializer}),
+            ]);
+        },
+        JSDocComment: function (props) {
             return h('div', null, [
                 '/** ',
                 props.node.comment,
                 '*/',
             ]);
-        }),
-
-        BindingElement: simpleTemplate('BindingElement', function (props) {
-            return h('div', null, [
-                '{',
-                h(TSNode, {node: props.node.name}),
-                '}',
-                props.node.initializer ? 'TODO: Initializer' : '',
-            ]);
-        }),
-
-        ObjectBindingPattern: simpleTemplate('ObjectBindingPattern', function (props) {
-            return h('div', null, [
-                '[',
-                h(TSNode, {node: props.node.elements}),
-                ']'
-            ]);
-        }),
+        },
 
 
-        IfStatement: simpleTemplate('ArrayLiteralExpression', function (props) {
+        Block: function ({node}) {
+            return <span>
+                {'{'}
+                <TSNode node={node.statements}/>
+                {'}'}
+            </span>
+        },
+        BindingElement: function ({node}) {
+            return <span>
+                <TSNode node={node.name}/>
+                {node.initializer ? 'TODO: Initializer' : ''}
+            </span>
+        },
+
+        ObjectBindingPattern: function ({node}) {
+            console.assert(node.elements);
+            return <span>
+                {'{'}
+                <TSNode node={node.elements} separator=","/>
+                {'}'}
+            </span>
+        },
+
+
+        IfStatement: function (props) {
             return h('div', null, [
                 'if(',
                 h(TSNode, {node: props.node.expression}),
@@ -224,10 +300,10 @@
                 props.node.elseStatement ? h(TSNode, {node: props.node.elseStatement}) : '',
                 props.node.elseStatement ? '}' : '',
             ]);
-        }),
+        },
 
 
-        FunctionExpression: simpleTemplate('FunctionExpression', function (props) {
+        FunctionExpression: function (props) {
             return h('div', null, [
                 'function',
                 props.node.name ? h(TSNode, {node: props.node.name}) : '',
@@ -237,9 +313,9 @@
                 h('div', {class: 'p20'}, [h(TSNode, {node: props.node.body})]),
                 '}',
             ]);
-        }),
+        },
 
-        MethodDeclaration: simpleTemplate('MethodDeclaration', function (props) {
+        MethodDeclaration: function (props) {
             return h('div', null, [
                 h(TSNode, {node: props.node.name}),
                 '(',
@@ -248,18 +324,30 @@
                 h('div', {class: 'p20'}, [h(TSNode, {node: props.node.body})]),
                 '}',
             ]);
-        }),
+        },
 
 
-        ConditionalExpression: simpleTemplate('ConditionalExpression', function (props) {
+        ConditionalExpression: function ({node}) {
+            console.assert(node.condition);
+            console.assert(node.whenFalse);
+            console.assert(node.whenTrue);
             return h('div', null, [
-                props.node.condition,
+                node.condition,
                 '?',
-                h(TSNode, {node: props.node.whenFalse}),
+                h(TSNode, {node: node.whenFalse}),
                 ':',
-                h(TSNode, {node: props.node.whenTrue})
+                h(TSNode, {node: node.whenTrue})
             ]);
-        }),
+        },
+
+        ComputedPropertyName: function ({node}) {
+            console.assert(node.expression);
+            return h('span', null, [
+                '[',
+                h(TSNode, {node: node.expression}),
+                ']'
+            ]);
+        },
 
 
         FunctionDeclaration(props) {
@@ -275,7 +363,7 @@
         },
 
 
-        ClassDeclaration: simpleTemplate('ClassDeclaration', function (props) {
+        ClassDeclaration: function (props) {
             console.assert(props.node.members);
             return h('div', null, [
                 props.node.jsDoc && h(TSNode, {node: props.node.jsDoc}),
@@ -287,21 +375,19 @@
                 '}',
 
             ]);
-        }),
-
-
-        ObjectLiteralExpression(props) {
-            return h('span', null, [
-                '{',
-                h(props.node.properties.length ? 'div' : 'span', {'class': 'p20'}, [
-                    h(TSNode, {node: props.node.properties}),
-                ]),
-                '}'
-            ]);
         },
 
 
-        TypeAliasDeclaration: simpleTemplate('TypeAliasDeclaration', function (props) {
+        ObjectLiteralExpression(props) {
+            return <span>
+                {'{'}
+                <TSNode node={props.node.properties} separator=","/>
+                {'}'}
+            </span>;
+        },
+
+
+        TypeAliasDeclaration: function (props) {
             return h('div', null, [
                 'type ',
                 h(TSNode, {node: props.node.name}),
@@ -309,20 +395,43 @@
                 h(TSNode, {node: props.node.type}),
 
             ]);
-        }),
-        ArrayBindingPattern: simpleTemplate('ArrayBindingPattern', function () {
+        },
+        ArrayBindingPattern: function () {
             return h('span', null, [
                 '$arraybind$',
             ]);
-        }),
+        },
 
-        ArrayType: simpleTemplate('ArrayType', function () {
+        ArrayType: function () {
             return h('span', null, [
                 '$arrayType$',
             ]);
-        }),
+        },
+        UnionType: function ({node}) {
+            return h('span', null, [
+                h(TSNode, {node: node.types, separator: '|'}),
+            ]);
+        },
 
-        FunctionType: simpleTemplate('FunctionType', function (props) {
+        TypeAssertionExpression: function ({node}) {
+            console.assert(node.type);
+            return h('span', null, [
+                '$TypeAssertionExpression$',
+                h(TSNode, {node: node.type}),
+            ]);
+        },
+
+        LabeledStatement: function ({node}) {
+            console.assert(node.label);
+            console.assert(node.statement);
+            return h('span', null, [
+                h(TSNode, {node: node.label}),
+                'LabeledStatement',
+                h(TSNode, {node: node.statement}),
+            ]);
+        },
+
+        FunctionType: function (props) {
             return h('span', null, [
                 '(',
                 h(TSNode, {node: props.node.parameters}),
@@ -330,18 +439,18 @@
                 h(TSNode, {node: props.node.type}),
 
             ]);
-        }),
+        },
 
-        ExpressionWithTypeArguments: simpleTemplate('ExpressionWithTypeArguments', function (props) {
+        ExpressionWithTypeArguments: function (props) {
             console.assert(props.node.expression);
             return h('span', null, [
                 h(TSNode, {node: props.node.expression}),
                 props.node.types && h(TSNode, {node: props.node.types}),
             ]);
-        }),
+        },
 
 
-        Constructor: simpleTemplate('Constructor', function (props) {
+        Constructor: function (props) {
             console.assert(props.node.parameters);
             console.assert(props.node.body);
             return h('div', null, [
@@ -353,67 +462,74 @@
                 props.node.body && h(TSNode, {node: props.node.body}),
                 '}',
             ]);
-        }),
+        },
 
-        Parameter: simpleTemplate('Parameter', function (props) {
-            console.assert(props.node.name);
-            console.assert(!props.node.initializer);
-            return h('span', null, [
-                h(TSNode, {node: props.node.name}),
-                ':',
-                props.node.type && h(TSNode, {node: props.node.type}),
-            ]);
-        }),
+        Parameter: function ({node}) {
+            console.assert(node.name);
+            return <span>
+              <TSNode node={node.name}/>
+                {node.type ? [
+                    ':',
+                    <TSNode node={node.type}/>
+                ] : null}
+                {node.initializer ? [
+                    '= $init$ ',
+                    <TSNode node={node.initializer}/>
+                ] : null}
 
-        PrefixUnaryExpression: simpleTemplate('PrefixUnaryExpression', function (props) {
+            </span>;
+        },
+
+        PrefixUnaryExpression: function (props) {
             console.assert(props.node.operator === 53);
             console.assert(props.node.operand);
             return h('span', null, [
                 '!',
                 h(TSNode, {node: props.node.operand}),
             ]);
-        }),
+        },
 
-        PropertyDeclaration: simpleTemplate('PropertyDeclaration', function (props) {
+        PropertyDeclaration: function (props) {
             console.assert(props.node.name);
             return h('div', null, [
                 props.node.modifiers && h(TSNode, {node: props.node.modifiers}),
                 h(TSNode, {node: props.node.name}),
+                props.node.type && ['$TP$', h(TSNode, {node: props.node.type})],
                 ' = ',
-                props.node.type && h(TSNode, {node: props.node.type}),
                 props.node.initializer && h(TSNode, {node: props.node.initializer}),
             ]);
-        }),
+        },
 
-        NewExpression: simpleTemplate('NewExpression', function (props) {
+        NewExpression: function (props) {
             console.assert(props.node.arguments);
             console.assert(props.node.expression);
 
             return h('span', null, [
                 'new ',
                 h(TSNode, {node: props.node.expression}),
+                props.node.typeArguments && ['<', h(TSNode, {node: props.node.typeArguments}), '>'],
                 '(',
                 h(TSNode, {node: props.node.arguments}),
                 ')',
-                props.node.typeArguments && h(TSNode, {node: props.node.typeArguments}),
+
             ]);
-        }),
-        TypeReference: simpleTemplate('TypeReference', function (props) {
+        },
+        TypeReference: function (props) {
             console.assert(props.node.typeName);
 
             return h('span', null, [
                 h(TSNode, {node: props.node.typeName}),
             ]);
-        }),
-        TypeLiteral: simpleTemplate('TypeLiteral', function () {
+        },
+        TypeLiteral: function () {
             // console.assert(props.node.typeName);
 
             return h('span', null, [
                 '{$TL$}'
             ]);
-        }),
+        },
 
-        AsExpression: simpleTemplate('TypeLiteral', function (props) {
+        AsExpression: function (props) {
             console.assert(props.node.expression);
             console.assert(props.node.type);
 
@@ -422,15 +538,137 @@
                 ' as ',
                 h(TSNode, {node: props.node.type}),
             ]);
-        }),
+        },
 
 
-        HeritageClause: simpleTemplate('HeritageClause', function (props) {
+        HeritageClause: function (props) {
             return h('span', null, [
                 'implements ',
                 h(TSNode, {node: props.node.types}),
             ]);
-        }),
+        },
+
+
+        TemplateExpression({node}) {
+            console.assert(node.head);
+            return <span>
+                {'`'}
+                <TSNode node={node.head}/>
+                <TSNode node={node.templateSpans}/>
+                {'`'}
+            </span>;
+        },
+        TemplateHead({node}) {
+            console.assert(node.text);
+            return <span>
+                {node.text}
+            </span>;
+        },
+        TemplateTail({node}) {
+            console.assert(node.text);
+            return <span>
+                {node.text}
+            </span>;
+        },
+        TemplateSpan({node}) {
+            console.assert(node.expression);
+            console.assert(node.literal);
+            return <span>
+                <TSNode node={node.expression}/>
+                <TSNode node={node.literal}/>
+            </span>;
+        },
+
+        // JSX
+        JsxFragment({node}) {
+            console.assert(!!node.openingFragment);
+            console.assert(!!node.closingFragment);
+            console.assert(!!node.children);
+            return <span>
+                <TSNode node={node.openingFragment}/>
+                <TSNode node={node.children}/>
+                <TSNode node={node.closingFragment}/>
+            </span>;
+        },
+        JsxElement({node}) {
+            console.assert(!!node.openingElement);
+            console.assert(!!node.closingElement);
+            console.assert(!!node.children);
+            return <span>
+                <TSNode node={node.openingElement}/>
+                {node.children.length ? <TSNode node={node.children}/> : ''}
+                <TSNode node={node.closingElement}/>
+            </span>;
+        },
+        JsxSelfClosingElement({node}) {
+            console.assert(!!node.tagName);
+            console.assert(!!node.attributes);
+            return <span>
+                {'<'}
+                <TSNode node={node.tagName}/>
+                {node.attributes.properties.length ? <TSNode node={node.attributes}/> : null}
+                {'/>'}
+            </span>;
+        },
+        JsxOpeningFragment() {
+            return <span>{'<>'}</span>;
+        },
+
+        JsxClosingFragment() {
+            return <span>{'</>'}</span>;
+        },
+
+        JsxOpeningElement({node}) {
+            console.assert(!!node.tagName);
+            console.assert(!!node.attributes);
+            return <span>
+                {'<'} <TSNode node={node.tagName}/>{
+                node.attributes.length && <TSNode node={node.attributes}/>
+            }{'>'}
+            </span>;
+        },
+        JsxClosingElement({node}) {
+            console.assert(!!node.tagName);
+            return <span>
+                {'<'}<TSNode node={node.tagName}/>/{'>'}
+            </span>;
+        },
+
+        JsxText({node}) {
+            console.assert(!!node.text);
+            if (node.text.trim() === '') {
+                return null;
+            }
+            return <span>
+                {node.text}
+            </span>;
+        },
+        JsxAttributes({node}) {
+            return <span>
+               <TSNode node={node.properties}/>
+            </span>;
+        },
+        JsxAttribute({node}) {
+            console.assert(node.name);
+
+            return <span>
+
+               <TSNode node={node.name}/>
+                {node.initializer && [
+                    '=',
+                    <TSNode node={node.initializer}/>
+                ]}
+            </span>;
+        },
+        JsxExpression({node}) {
+            console.assert(node.expression);
+
+            return <span>
+                {'{'}
+                <TSNode node={node.expression}/>
+                {'}'}
+            </span>;
+        },
     };
 
     const TSNode = {
@@ -445,7 +683,6 @@
                 return kindMap[this.node.kind] || this.node.constructor.name;
             },
             component() {
-                console.log(this.nodeName);
                 return components[this.nodeName] || components.Unknown;
             },
             ...mapGetters(['selectedNode']),

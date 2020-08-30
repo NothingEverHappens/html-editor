@@ -23,9 +23,8 @@
         computed: {
             ...mapGetters(['tree', 'state', 'inputFocused']),
             actions() {
-                const actions = editorActions.getActions(this.state, this.filter);
-                console.assert(false);
-                return actions;
+                return editorActions.getActions(this.state, this.filter);
+
             },
             ...mapFields(['filter']),
         },
@@ -98,6 +97,7 @@
   .action {
     cursor: pointer;
   }
+
   .meta {
     color: #999;
   }

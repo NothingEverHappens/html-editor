@@ -4,9 +4,9 @@ import {tsquery} from '@phenomnomnominal/tsquery';
 import {EditorState, TsFile} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
 
-export function parseTypeScriptFile(code: string) {
+export function parseTypeScriptFile(code: string, file: string) {
     const r = ts.createSourceFile(
-        'any.ts',
+        file,
         code,
         ts.ScriptTarget.ES2015,
         /*setParentNodes */ true
@@ -33,7 +33,7 @@ export class EditorTypeScript {
     }
 
     get node() {
-        return this.file.selectedNode;
+        return this.file.selectedNode || this.file.tree;
     }
 
     get tree() {

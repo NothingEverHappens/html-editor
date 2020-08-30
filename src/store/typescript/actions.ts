@@ -1,7 +1,7 @@
 import {fileTypes} from "@/store/store";
 import {tsPredicates} from "@/store/typescript/predicates";
 import {EditorAction} from "@/store/types";
-import { Identifier } from 'typescript';
+import {Identifier} from 'typescript';
 
 
 export const jsActions: EditorAction[] = [
@@ -73,6 +73,13 @@ export const jsActions: EditorAction[] = [
         shortcut: 'm',
         async handler(utils) {
             utils.ts.jumpToSelector('MethodDeclaration');
+        }
+    }, {
+        key: 'jumpToJsx',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 't',
+        async handler(utils) {
+            utils.ts.jumpToSelector('JsxOpeningElement,JsxSelfClosingElement');
         }
     },
     {

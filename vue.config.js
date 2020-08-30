@@ -1,5 +1,11 @@
 module.exports = {
     devServer: {
-        host: "localhost"
+        host: "localhost",
+        proxy: {
+            '^/files': {
+                target: 'http://localhost:3007',
+            },
+        }
+
     }
 };

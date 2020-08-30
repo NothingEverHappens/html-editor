@@ -6,7 +6,7 @@ import {editorActions} from "@/store/actions";
 import {getField, updateField} from 'vuex-map-fields';
 import {mode} from "@/store/utils/mode";
 import {parseTypeScriptFile} from "@/store/typescript/utils";
-import {EditorState} from "@/store/types";
+import {EditorState, TsFile} from "@/store/types";
 
 export const fileTypes = {
     JAVASCRIPT: 'JAVASCRIPT',
@@ -17,95 +17,14 @@ export const fileTypes = {
 export const extensionToType: Record<string, string> = {
     js: fileTypes.JAVASCRIPT,
     ts: fileTypes.TYPESCRIPT,
+    tsx: fileTypes.TYPESCRIPT,
     html: fileTypes.HTML,
 };
 
-const tree = parseTypeScriptFile(`
-import {ChangeDetectionStrategy, Component, OnDestroy} from '@angular/core';
-import {FormControl} from '@angular/forms';
-import {MatDialog} from '@angular/material/dialog';
-import {MatSlideToggleChange} from '@angular/material/slide-toggle';
-import {PermissionRequirements, Requirement} from 'google3/java/com/google/firebase/console/web/components/permissions/permissions';
-import {HostingSiteConfig} from 'google3/java/com/google/firebase/console/web/modules/hosting/ng2/history/common/types';
-import {CloudLoggingUnlinkDialog} from 'google3/java/com/google/firebase/console/web/modules/settings/integrations/ng2/extensions/cloud_logging/dialogs/cloud_logging_unlink_dialog/cloud_logging_unlink_dialog';
-import {CloudLoggingIntegration} from 'google3/java/com/google/firebase/console/web/modules/settings/integrations/ng2/services/cloud_logging_integration';
-import {Permission} from 'google3/java/com/google/firebase/console/web/services/permissions/permissions';
-import {ReplaySubject} from 'rxjs';
-import {filter, takeUntil} from 'rxjs/operators';
-
-/** Settings page for Cloud Logging  */
-@Component({
-  selector: 'fire-cloud-logging-settings-page',
-  templateUrl: './cloud_logging_settings_page.ng.html',
-  styleUrls: ['./cloud_logging_settings_page.css'],
-  changeDetection: ChangeDetectionStrategy.OnPush
-})
-export class CloudLoggingSettingsPage implements OnDestroy {
-  readonly linkPermissions: Readonly<PermissionRequirements> = {
-    permissions: [
-      Permission.FIREBASE_LINKS_UPDATE,
-    ],
-    require: Requirement.ALL,
-  };
-
-  private readonly destroy$ = new ReplaySubject<void>(1);
-
-  readonly hostingEnabledControl = new FormControl(true);
-  readonly logsGeneratedPerDay$ =
-      this.cloudLoggingService.getHostingLogsGeneratedPerDay();
-
-  readonly getHostingLogsGeneratedPerDayLoading$ =
-      this.cloudLoggingService.getHostingLogsGeneratedPerDayLoading();
-
-  readonly hostingSites$ = this.cloudLoggingService.hostingSites();
-  readonly storageEstimateBySite$ =
-      this.cloudLoggingService.getStorageEstimateBySite();
-
-  readonly viewInCloudLoggingUrl$ =
-      this.cloudLoggingService.getViewInCloudLoggingUrl();
-
-  constructor(
-      private readonly cloudLoggingService: CloudLoggingIntegration,
-      private readonly dialog: MatDialog,
-  ) {
-    this.cloudLoggingService.loadLogsGenerated();
-  }
-
-  openStopDataExportDialog(event: MatSlideToggleChange) {
-    this.dialog.open(CloudLoggingUnlinkDialog)
-        .afterClosed()
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((shouldDisableHosting: boolean) => {
-          if (shouldDisableHosting) {
-            this.cloudLoggingService.disableCloudLogging();
-          } else {
-            this.hostingEnabledControl.setValue(true);
-          }
-        });
-  }
-
-  openUnlinkDialog() {
-    this.dialog.open(CloudLoggingUnlinkDialog)
-        .afterClosed()
-        .pipe(
-            takeUntil(this.destroy$),
-            filter(a => !!a),
-            )
-        .subscribe(() => {
-          this.cloudLoggingService.disableCloudLogging();
-        });
-  }
-
-  onSave(configs: HostingSiteConfig[]) {
-    this.cloudLoggingService.updateCloudLoggingConfigs(configs);
-  }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-  }
-}
-
-  `
+const tree = parseTypeScriptFile(` 
+ const x = 0;
+  `,
+    'file.ts'
 );
 
 function getInitialState(): EditorState {
@@ -118,6 +37,8 @@ function getInitialState(): EditorState {
         selectedFileName: 'index.ts',
         files: {
             'index.ts': {
+                path: 'index.ts',
+                code: '',
                 type: 'ts',
                 tree,
                 selectedNode: tree,
@@ -139,9 +60,26 @@ function getInitialState(): EditorState {
 export function getStore() {
     return new Vuex.Store({
         state: getInitialState(),
+        actions: {
+            async fetchFiles() {
+                const files = await fetch('/files');
+                const result = await files.json();
+                this.commit('updateFileList', result);
+            }
+        },
         mutations: {
+            updateFileList(state, files: TsFile[]) {
+                state.files = files.reduce((result, file) => {
+                    result[file.path] = {
+                        ...file,
+                        tree: parseTypeScriptFile(file.code, file.path)
+                    };
+                    return result;
+                }, {} as Record<string, TsFile>);
+                state.selectedFileName = files[0].path;
+            },
             async executeAction(state, action) {
-                editorActions.execute(action, state);
+                return editorActions.execute(action, state);
             },
             updateFilter(state, filter) {
                 state.filter = filter;

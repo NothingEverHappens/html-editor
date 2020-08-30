@@ -1,6 +1,7 @@
 import {EditorAutocompleteOption, EditorState} from "@/store/types";
 
 export interface EditorMode {
+    type: 'NORMAL' | 'UPDATE_CONTENT',
     focus: boolean;
     filter?: string;
 }
@@ -10,16 +11,14 @@ export interface ModeArg {
     callback: (key: string) => void;
 }
 
-
 export const mode: Record<string, EditorMode> = {
     NORMAL: {
+        type: 'NORMAL',
         focus: false,
         filter: '',
     },
-    SELECT_TAG_NAME: {
-        focus: true,
-    },
     UPDATE_CONTENT: {
+        type: 'UPDATE_CONTENT',
         focus: true,
     },
 };

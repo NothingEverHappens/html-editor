@@ -6,19 +6,20 @@ import {EditorUtils} from "@/store/utils/utils";
 export type DisplayPredicate = (utils: EditorUtils) => boolean;
 
 
-export interface EditorActionDefinition {
-    key: ((utils: EditorUtils) => string) | string;
+interface BaseAction {
+    readonly key: ((utils: EditorUtils) => string) | string;
     type?: string;
-    shortcut: string | string[];
     mode?: EditorMode | '*';
     displayPredicate?: DisplayPredicate,
+}
+
+export interface EditorActionDefinition extends BaseAction {
+    type?: string;
+    shortcut: string | string[];
     handler: (this: EditorAction, utils: EditorUtils, action: any, param?: any) => void;
 }
 
-export interface EditorActionGenerator {
-    type?: string;
-    mode?: EditorMode;
-    displayPredicate?: DisplayPredicate,
+export interface EditorActionGenerator extends BaseAction {
     generator?: (this: EditorActionGenerator, utils: EditorUtils, filter: string) => EditorActionDefinition[]
 }
 
@@ -42,8 +43,10 @@ export interface HtmlFile {
 
 export interface TsFile {
     type: 'ts',
+    path: string;
     tree: SourceFile,
     selectedNode: ts.Node
+    code: string;
 }
 
 
