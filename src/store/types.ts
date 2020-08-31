@@ -39,6 +39,7 @@ export interface HtmlFile {
     type: 'html',
     code: string,
     selectedNodeKey: string;
+    path: string;
 }
 
 export interface TsFile {

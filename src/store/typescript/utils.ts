@@ -1,8 +1,8 @@
-import * as ts from 'typescript';
-import {PropertyDeclaration} from 'typescript';
+import ts, {PropertyDeclaration} from 'typescript';
 import {tsquery} from '@phenomnomnominal/tsquery';
 import {EditorState, TsFile} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
+import {tsAstRename} from "@/store/typescript/transform";
 
 export function parseTypeScriptFile(code: string, file: string) {
     const r = ts.createSourceFile(
@@ -46,6 +46,15 @@ export class EditorTypeScript {
         }
     }
 
+    generate() {
+        const node = this.tree;
+        const printer = ts.createPrinter({newLine: ts.NewLineKind.LineFeed});
+        const resultFile = ts.createSourceFile("someFileName.ts", "", ts.ScriptTarget.Latest, /*setParentNodes*/ false, ts.ScriptKind.TS);
+        return printer.printNode(ts.EmitHint.Unspecified, node, resultFile);
+
+    }
+
+
     goChild() {
         const node = this.node;
         let hasEl: boolean;
@@ -81,7 +90,7 @@ export class EditorTypeScript {
     }
 
     rename(name: string) {
-        (this.node as unknown as ts.Identifier).escapedText = name as any;
+        this.file.tree = tsAstRename(this.tree, (this.node as ts.Identifier).text, name);
     }
 
     flipReadonly() {

@@ -1,4 +1,4 @@
-import Vuex from 'vuex';
+import Vuex, {Store} from 'vuex';
 
 import $ from 'jquery';
 import {cleanUpHtml, importHtml, importNode} from "@/store/helpers";
@@ -45,11 +45,13 @@ function getInitialState(): EditorState {
             },
             'index.html': {
                 type: 'html',
+                path: 'index.html',
                 code: '<root id = root>',
                 selectedNodeKey: 'root',
             },
             'banan.html': {
                 type: 'html',
+                path: 'banan.html',
                 code: importHtml(`<root id = root><div></div></root>`),
                 selectedNodeKey: 'root',
             },
@@ -58,14 +60,14 @@ function getInitialState(): EditorState {
 }
 
 export function getStore() {
-    return new Vuex.Store({
+    const store: Store<EditorState> = new Vuex.Store({
         state: getInitialState(),
         actions: {
             async fetchFiles() {
                 const files = await fetch('/files');
                 const result = await files.json();
                 this.commit('updateFileList', result);
-            }
+            },
         },
         mutations: {
             updateFileList(state, files: TsFile[]) {
@@ -79,7 +81,7 @@ export function getStore() {
                 state.selectedFileName = files[0].path;
             },
             async executeAction(state, action) {
-                return editorActions.execute(action, state);
+                return editorActions.execute(action, state, store);
             },
             updateFilter(state, filter) {
                 state.filter = filter;
@@ -132,4 +134,5 @@ export function getStore() {
             }
         }
     });
+    return store;
 }

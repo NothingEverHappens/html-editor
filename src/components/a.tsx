@@ -1,52 +1,50 @@
-import React from 'react';
-import { useFieldArray } from 'react-hook-form';
-import { FormContextValues } from 'react-hook-form/dist/contextTypes';
+import pts, { SourceFile } from 'typescript';
+import { EditorMode } from './utils/mode';
+import { EditorUtils } from "@/store/utils/utils";
+export type DisplayPredicate = (utils: EditorUtils) => boolean;
+interface BaseAction {
+    readonly key: ((utils: EditorUtils) => string) | string;
+    type?: string;
+    mode?: EditorMode | '*';
+    displayPredicate?: DisplayPredicate;
+}
 
-import { Field } from '../../../common/Field';
-import { AddAuthUserPayload } from '../../types';
-import { IconButton } from '@rmwc/icon-button';
-
-export const CustomAttributes: React.FC<FormContextValues<AddAuthUserPayload>> = ({ control, register, watch }) => {
-    const { fields, append, remove } = useFieldArray({
-        control,
-        name: 'customAttributes',
-    });
-
-    // const attributeValues = watch('customAttributes', fields as any)!;
-
-    return (
-        <div>
-            {fields.map((item, index) => (
-                <div key={item.id} style={{ display: 'flex' }}>
-                    <Field
-                        name={`customAttributes[${index}].role`}
-                        inputRef={register()}
-                        defaultValue={item.role}
-                    />
-                    {2+2}
-                    <Field
-                        name={`customAttributes[${index}].value`}
-                        inputRef={register()}
-                        defaultValue={item.role}
-                    />
-                    <IconButton
-                        label="Add field"
-                        type="button"
-                        icon="close"
-                        onClick={() => {
-                            remove(index);
-                        }}
-                    />
-                </div>
-            ))}
-            <IconButton
-                label="Add field"
-                type="button"
-                icon="add"
-                onClick={() => {
-                    append({});
-                }}
-            />
-        </div>
-    );
-};
+const x = a.b.c.d;
+export interface EditorActionDefinition extends BaseAction {
+    type?: string;
+    shortcut: string | string[];
+    handler: (this: EditorAction, utils: EditorUtils, action: any, param?: any) => void;
+}
+export interface EditorActionGenerator extends BaseAction {
+    generator?: (this: EditorActionGenerator, utils: EditorUtils, filter: string) => EditorActionDefinition[];
+}
+export type EditorAction = EditorActionDefinition | EditorActionGenerator;
+export interface EditorAutocompleteOption {
+    key: string;
+    used: number;
+}
+interface TsNode {
+    a: 'lol';
+}
+export interface HtmlFile {
+    type: 'html';
+    code: string;
+    selectedNodeKey: string;
+}
+export interface TsFile {
+    type: 'ts';
+    path: string;
+    tree: SourceFile;
+    selectedNode: pts.Node;
+    code: string;
+}
+type EditorFile = HtmlFile | TsFile;
+export interface EditorState {
+    mode: EditorMode;
+    inputFocused: boolean;
+    /** @deprecated */
+    modeArg: any;
+    filter: string;
+    selectedFileName: string;
+    files: Record<string, EditorFile>;
+}

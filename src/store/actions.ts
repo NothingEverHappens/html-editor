@@ -8,6 +8,7 @@ import {inputActions} from "@/store/actions/input";
 import {jsActions} from "@/store/typescript/actions";
 import {extensionToType, fileTypes} from "@/store/store";
 import {EditorAction, EditorActionDefinition, EditorState} from "@/store/types";
+import {Store} from "vuex";
 
 
 function getDisplayShortcut(shortcut: string | string[]) {
@@ -48,9 +49,9 @@ export class Actions {
         actions.forEach(a => this.addAction(a))
     }
 
-    async execute(action: EditorActionDefinition, state: EditorState) {
-        const utils = new EditorUtils(state);
-        const a = this.getActions(state).find(a => a.key === action.type);
+    async execute(action: EditorActionDefinition, state: EditorState, store: Store<EditorState>) {
+        const utils = new EditorUtils(state, store);
+        const a = this.getActions(state, '', store).find(a => a.key === action.type);
 
         if (!a) {
             throw new Error('action does not exist: ' + action.type);
@@ -71,8 +72,8 @@ export class Actions {
         a.handler.call(a, utils, action);
     }
 
-    getActions(state: EditorState, filter = '') {
-        const utils = new EditorUtils(state);
+    getActions(state: EditorState, filter = '', store: Store<EditorState>) {
+        const utils = new EditorUtils(state, store);
         return this.actions.flatMap(a => {
             if ('generator' in a && typeof a.generator === 'function') {
                 return (a.generator(utils, filter));

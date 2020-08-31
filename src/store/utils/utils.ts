@@ -6,6 +6,7 @@ import {EditorStats} from "@/store/utils/stats";
 import {EditorAttributes} from "@/store/utils/attributes";
 import {EditorTypeScript} from "@/store/typescript/utils";
 import {EditorState, HtmlFile} from "@/store/types";
+import {Store} from "vuex";
 
 
 export class EditorUtils {
@@ -15,7 +16,7 @@ export class EditorUtils {
     readonly attributes = new EditorAttributes(this.state, this);
     readonly ts = new EditorTypeScript(this.state, this);
 
-    constructor(readonly state: EditorState) {
+    constructor(readonly state: EditorState, private readonly store: Store<any>) {
 
     }
 
@@ -37,7 +38,21 @@ export class EditorUtils {
         throw ('fix me');
     }
 
+    async saveFile() {
+        const code = this.ts.generate();
+        const file = this.ts.file.path;
 
+        await fetch(
+            '/files',
+            {
+                method: 'post',
+                body: JSON.stringify({code, file}),
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
+    }
 
     hasNextSibling() {
         return this.node.next().length > 0;
@@ -86,7 +101,7 @@ export class EditorUtils {
         this.commit(([node]) => {
             const renamed = document.createElement(tagName);
             const parent = node.parentNode;
-            if(!parent){
+            if (!parent) {
                 throw 'there is no parent, this should not happen';
             }
 

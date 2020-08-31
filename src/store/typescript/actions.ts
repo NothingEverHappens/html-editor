@@ -6,6 +6,14 @@ import {Identifier} from 'typescript';
 
 export const jsActions: EditorAction[] = [
     {
+        key: 'save',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 's',
+        handler(utils, a) {
+            utils.saveFile();
+        }
+    },
+    {
         key: 'createFunction',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'f',

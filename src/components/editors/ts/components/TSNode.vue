@@ -1,8 +1,8 @@
 <template>
-  <span :class="{selected: selected, nodeWrapper: true}" :data-node="nodeName"
-        style="outline: 1px rgba(221,219,220,0.36) solid; padding: 1px;display: inline-block;position: relative;10px;">
+  <span :class="{selected: selected, [nodeName]: true}">
     <template v-if="!isArray">
-<!--      <span style="background: #ddd;position: absolute; left: 0; top: 50%;margin-top:-10px;border-radius: 50%"></span>-->
+      <span v-if="false"
+            style="background: #ddd;position: absolute; left: 0; top: 50%;margin-top:-10px;border-radius: 50%"></span>
       <component v-if="component" :is="component" :nodeName="nodeName" :node="node"/>
     </template>
     <template v-if="isArray">
@@ -82,12 +82,11 @@
             ]);
         },
 
-        PropertyAccessExpression(props) {
-            return h('span', null, [
-                h(TSNode, {node: props.node.expression}),
-                '.',
-                h(TSNode, {node: props.node.name}),
-            ]);
+        PropertyAccessExpression({node}) {
+            return <>
+                <TSNode node={node.expression}/>.
+                <TSNode node={node.name}/>
+            </>;
         },
         ArrowFunction({node}) {
             return <span>
@@ -120,11 +119,12 @@
 
 
         NumericLiteral({node}) {
+            console.assert(node.text);
             return <span>{node.text}</span>
         },
 
-        StringLiteral(props) {
-            return h('span', null, '\'' + props.node.text + '\'');
+        StringLiteral({node}) {
+            return <span>'{node.text}'</span>;
         },
 
         ExpressionStatement: simpleNode('ExpressionStatement', ({node}) => node.expression, 'div'),
@@ -139,7 +139,10 @@
         // },
         //simpleNode('SourceFile', ({node}) => node.statements, 'div'),
 
-        ImportClause: simpleNode('ImportClause', ({node}) => node.name || node.namedBindings),
+        ImportClause: ({node}) => <>
+            { node.name && <TSNode node={node.name} />}
+            { node.nameBindings && <TSNode node={node.nameBindings} />}
+        </>,
         ExportAssignment: simpleNode('ExportAssignment', ({node}) => node.expression),
 
 
@@ -202,7 +205,7 @@
         },
 
         Identifier: function ({node}) {
-            return <span>{node.text}</span>;
+            return node.text;
         },
 
         RegularExpressionLiteral: function ({node}) {
@@ -228,9 +231,8 @@
             return <div>return <TSNode node={node.expression}/></div>;
         },
 
-
         ArrayLiteralExpression: function ({node}) {
-            return <div>[<TSNode node={node.expression}/>]</div>;
+            return <div>[{node.elements && <TSNode node={node.elements}/>}]</div>;
         },
         TypeOfExpression: function (props) {
             return h('span', null, [
@@ -331,13 +333,14 @@
             console.assert(node.condition);
             console.assert(node.whenFalse);
             console.assert(node.whenTrue);
-            return h('div', null, [
-                node.condition,
-                '?',
-                h(TSNode, {node: node.whenFalse}),
-                ':',
-                h(TSNode, {node: node.whenTrue})
-            ]);
+
+            return <div>
+                <TSNode node={node.condition}/>{
+                '?'
+            }<TSNode node={node.whenTrue}/>{
+                ':'
+            }<TSNode node={node.whenFalse}/>
+            </div>;
         },
 
         ComputedPropertyName: function ({node}) {
@@ -402,10 +405,11 @@
             ]);
         },
 
-        ArrayType: function () {
-            return h('span', null, [
-                '$arrayType$',
-            ]);
+        ArrayType: function ({node}) {
+            console.assert(node.elementType);
+            return <span>
+              <TSNode node={node.elementType}/>[]
+            </span>
         },
         UnionType: function ({node}) {
             return h('span', null, [
@@ -548,7 +552,54 @@
             ]);
         },
 
+        // Interfaces
+        InterfaceDeclaration({node}) {
+            console.assert(node.name);
+            console.assert(node.members);
+            return <div>
+                interface <TSNode node={node.name}/> {'{'}
+                <TSNode node={node.members} separator=","/>
+                {'}'}
+            </div>;
+        },
 
+        PropertySignature({node}) {
+            console.assert(node.name);
+
+            return <div className="p20">
+                {node.modifiers && <TSNode node={node.modifiers}/>}
+                <TSNode node={node.name}/>
+                :
+                <TSNode node={node.type}/>
+            </div>;
+        },
+        ParenthesizedType({node}) {
+            console.assert(node.type);
+
+            return <span>
+               <TSNode node={node.type}/>
+            </span>;
+        },
+        LiteralType({node}) {
+            console.assert(node.literal);
+
+            return <span>
+               <TSNode node={node.literal}/>
+            </span>;
+        },
+        NumberKeyword: () => 'number',
+        QualifiedName: ({node}) => {
+            console.assert(node.left);
+            console.assert(node.right);
+
+            return <span>
+              <TSNode node={node.left}/>
+              .
+              <TSNode node={node.right}/>
+            </span>
+        },
+
+        // Templates
         TemplateExpression({node}) {
             console.assert(node.head);
             return <span>
@@ -673,7 +724,10 @@
 
     const TSNode = {
         name: "TSNode",
-        props: ['node', 'separator'],
+        props: {
+            'node': {type: [Object, Array], required: true},
+            separator: String
+        },
         computed: {
             isArray() {
                 console.assert(typeof this.node !== 'string');
