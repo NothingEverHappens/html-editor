@@ -21,28 +21,86 @@
 </script>
 
 <style>
-  .p20 {
-    padding-left: 20px;
-  }
-
   [data-node="PropertyAssignment"] > * > [data-node="StringLiteral"] {
     color: #006cff;
   }
 
-  [data-node="Identifier"] {
-    color: rgba(114, 114, 124, 0.86);
+  .Identifier {
+    color: rgba(82, 124, 12, 0.86);
   }
 
-  [data-node="StringLiteral"] {
-    color: #076a4a;
+  .InterfaceDeclaration,
+  .FunctionDeclaration,
+  .SourceFile > .Block > .ExpressionStatement {
+    display: block;
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
+
+  .StringLiteral {
+    color: #9f5600;
+  }
+
   [data-node="MethodDeclaration"] {
     margin-top: 20px;
     display: block;
   }
 
+  .ObjectLiteralExpression > .Array > *,
+  .ArrayLiteralExpression > .Array > *,
+  .PropertySignature {
+    margin-left: 20px;
+    display: block;
+  }
+
+  .ImportDeclaration,
+  .PropertySignature,
+  .VariableStatement,
+  .PropertyAssignment {
+    display: block
+  }
+
+  .VariableStatement:after {
+    content: ";";
+  }
+  .PropertyAssignment:not(:last-child):after,
+  .VariableDeclarationList > .Array > .VariableDeclaration:not(:last-child):after
+  {
+    content: ", ";
+  }
 
   .ts-editor-wrapper {
     font-family: Monaco;
   }
+
+  .ArrowFunction > .Block,
+  .FunctionDeclaration > .Block {
+    display: inline !important;
+  }
+
+
+  .Block {
+    display: block;
+  }
+
+  .Block > .Array > * {
+    display: block;
+    margin-left: 20px;
+  }
+  .TrueKeyword,
+  .FalseKeyword,
+  .NumericLiteral {
+    font-weight: bold;
+    color: #00669f;;
+  }
+
+  .JsxOpeningElement > .Identifier,
+  .JsxClosingElement > .Identifier,
+  .JsxSelfClosingElement > .Identifier {
+    color: #400098;
+  }
+
+
+
+
 </style>

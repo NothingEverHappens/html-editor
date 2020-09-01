@@ -1,6 +1,7 @@
 import ts, {SourceFile} from 'typescript';
 import {EditorMode} from './utils/mode';
 import {EditorUtils} from "@/store/utils/utils";
+import {LanguageService} from "@/store/typescript/initLanguageService";
 
 
 export type DisplayPredicate = (utils: EditorUtils) => boolean;
@@ -54,6 +55,7 @@ export interface TsFile {
 type  EditorFile = HtmlFile | TsFile;
 
 export interface EditorState {
+    languageService?: LanguageService,
     mode: EditorMode,
     inputFocused: boolean;
     /** @deprecated */

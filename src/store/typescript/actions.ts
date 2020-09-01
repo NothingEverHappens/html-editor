@@ -132,6 +132,14 @@ export const jsActions: EditorAction[] = [
         }
     },
     {
+        key: 'findOutType',
+        type: fileTypes.TYPESCRIPT,
+        shortcut: 'u',
+        handler(utils) {
+            utils.ts.findOutType();
+        }
+    },
+    {
         key: 'goToIdentifier',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'i',

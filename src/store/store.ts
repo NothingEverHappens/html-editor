@@ -7,6 +7,7 @@ import {getField, updateField} from 'vuex-map-fields';
 import {mode} from "@/store/utils/mode";
 import {parseTypeScriptFile} from "@/store/typescript/utils";
 import {EditorState, TsFile} from "@/store/types";
+import {initLanguageService} from "@/store/typescript/initLanguageService";
 
 export const fileTypes = {
     JAVASCRIPT: 'JAVASCRIPT',
@@ -33,6 +34,7 @@ function getInitialState(): EditorState {
         inputFocused: false,
         modeArg: {},
         filter: '',
+        languageService: undefined,
 
         selectedFileName: 'index.ts',
         files: {
@@ -59,6 +61,8 @@ function getInitialState(): EditorState {
     };
 }
 
+
+
 export function getStore() {
     const store: Store<EditorState> = new Vuex.Store({
         state: getInitialState(),
@@ -78,7 +82,10 @@ export function getStore() {
                     };
                     return result;
                 }, {} as Record<string, TsFile>);
-                state.selectedFileName = files[0].path;
+
+                // state.languageService = initLanguageService(files);
+
+                state.selectedFileName = files[11].path;
             },
             async executeAction(state, action) {
                 return editorActions.execute(action, state, store);

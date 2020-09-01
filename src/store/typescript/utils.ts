@@ -2,7 +2,8 @@ import ts, {PropertyDeclaration} from 'typescript';
 import {tsquery} from '@phenomnomnominal/tsquery';
 import {EditorState, TsFile} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
-import {tsAstRename} from "@/store/typescript/transform";
+import {transformVisit, tsAstRename} from "@/store/typescript/transform";
+import {EditorJasmine} from "@/store/typescript/jasmine/jasmine_utils";
 
 export function parseTypeScriptFile(code: string, file: string) {
     const r = ts.createSourceFile(
@@ -20,9 +21,10 @@ export function parseTypeScriptFile(code: string, file: string) {
 // }
 
 export class EditorTypeScript {
+    readonly jasmine = new EditorJasmine(this.state, this.utils);
+
     constructor(private readonly state: EditorState,
                 private readonly utils: EditorUtils) {
-
     }
 
 
@@ -38,6 +40,9 @@ export class EditorTypeScript {
 
     get tree() {
         return this.file.tree;
+    }
+    set tree(tree) {
+        this.file.tree = tree;
     }
 
     selectNode(node: ts.Node) {
@@ -63,8 +68,11 @@ export class EditorTypeScript {
                 hasEl = true;
                 this.selectNode(n);
             }
-
         });
+    }
+
+    transformVisit( callback: (node: ts.Node, context: ts.TransformationContext) => ts.Node){
+        this.tree = transformVisit(this.tree,  callback)
     }
 
     goNext() {
@@ -127,6 +135,10 @@ export class EditorTypeScript {
 
     goParent() {
         this.selectNode(this.node.parent);
+    }
+
+    findOutType() {
+        this.state.languageService?.findOutType(this.node);
     }
 
     jumpToReturn() {

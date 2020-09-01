@@ -1,8 +1,8 @@
 <template>
   <div class="wrapper">
-    <div v-for="file of files" :class="{selected: file.selected, file: true}" @click="selectFileName(file.name)"
-         :key="file.name">{{file.name}}
-    </div>
+<!--    <div v-for="file of files" :class="{selected: file.selected, file: true}" @click="selectFileName(file.name)"-->
+<!--         :key="file.name">{{file.name}}-->
+<!--    </div>-->
   </div>
 </template>
 

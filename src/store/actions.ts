@@ -9,6 +9,8 @@ import {jsActions} from "@/store/typescript/actions";
 import {extensionToType, fileTypes} from "@/store/store";
 import {EditorAction, EditorActionDefinition, EditorState} from "@/store/types";
 import {Store} from "vuex";
+import {filesEditorActions} from "@/store/actions/files";
+import {jasmineEditorActions} from "@/store/typescript/jasmine/jasmine_actions";
 
 
 function getDisplayShortcut(shortcut: string | string[]) {
@@ -113,7 +115,9 @@ export const editorActions = new Actions()
     .withActions(foldingEditorActions)
     .withActions(metaEditorActions)
     .withActions(inputActions)
-    .withActions(jsActions);
+    .withActions(jsActions)
+    .withActions(filesEditorActions)
+    .withActions(jasmineEditorActions);
 
 
 /**
