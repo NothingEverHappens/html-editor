@@ -5,13 +5,15 @@
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "test": "vue-cli-service test"
   },
   "dependencies": {
     "@babel/standalone": "^7.11.3",
     "@types/jquery": "^3.5.1",
     "core-js": "^3.6.5",
     "jquery": "^3.5.1",
+    "ts-creator": "^1.2.5",
     "tsutils": "^3.17.1",
     "typescript": "^3.9.7",
     "vue": "^3.0.0-beta.1",

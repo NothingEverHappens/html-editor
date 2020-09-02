@@ -36,8 +36,11 @@
 
         components: {HtmlEditor, Files, Shortcuts, Preview, TsEditor},
         created() {
+            // console.log('hi');
             this.fileTypes = fileTypes;
-            // this.executeAction({type: 'goChild', tag: 'div'});
+            this.executeAction({type: 'jasmine'});
+            // this.executeAction({type: 'nextDescribe'});
+            // this.executeAction({type: 'jasmine'});
             // this.executeAction({type: 'goNext', tag: 'div'});
             // this.executeAction({type: 'goNext', tag: 'div'});
             // this.executeAction({type: 'goNext', tag: 'div'});

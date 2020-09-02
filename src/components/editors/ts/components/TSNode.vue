@@ -1,5 +1,6 @@
 <template>
   <span :class="{selected: selected, [nodeName]: true}">
+    <span v-if="selectable" class="selectable-shortcut">{{selectable}}</span>
     <template v-if="!isArray">
       <span v-if="false"
             style="background: #ddd;position: absolute; left: 0; top: 50%;margin-top:-10px;border-radius: 50%"></span>
@@ -814,9 +815,12 @@
             component() {
                 return components[this.nodeName] || components.Unknown;
             },
-            ...mapGetters(['selectedNode']),
+            ...mapGetters(['selectedNode', 'selectableNodes']),
             selected() {
                 return this.selectedNode === this.node;
+            },
+            selectable() {
+                return this.selectableNodes?.get(this.node)
             }
         },
         mounted() {
@@ -845,9 +849,22 @@
     position: relative;
   }
 
-  .selected {
-    background: rgba(254, 255, 10, 0.13);
+  .selected,
+  .selected * {
+    background: rgba(254, 255, 10, 0);
     outline: 1px #ddd solid;
+  }
+
+  .selectable-shortcut {
+    padding: 0 4px;
+    background: aliceblue;
+    width: 20px;
+    border: 1px rgba(11, 152, 184, 0.38) solid;
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 4px;
+    text-align: center;
+    color: #444;
   }
 
 </style>

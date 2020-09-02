@@ -31,6 +31,7 @@
 
   .InterfaceDeclaration,
   .FunctionDeclaration,
+  .CallExpression,
   .SourceFile > .Block > .ExpressionStatement {
     display: block;
     margin-top: 20px;
@@ -56,6 +57,7 @@
   .ImportDeclaration,
   .PropertySignature,
   .VariableStatement,
+  .CallExpression,
   .PropertyAssignment {
     display: block
   }
@@ -64,7 +66,8 @@
     content: ";";
   }
   .PropertyAssignment:not(:last-child):after,
-  .VariableDeclarationList > .Array > .VariableDeclaration:not(:last-child):after
+  .VariableDeclarationList > .Array > .VariableDeclaration:not(:last-child):after,
+  .CallExpression >  .Array > *:not(:last-child):after
   {
     content: ", ";
   }
@@ -91,7 +94,7 @@
   .FalseKeyword,
   .NumericLiteral {
     font-weight: bold;
-    color: #00669f;;
+    color: #00669f;
   }
 
   .JsxOpeningElement > .Identifier,

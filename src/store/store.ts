@@ -7,13 +7,18 @@ import {getField, updateField} from 'vuex-map-fields';
 import {mode} from "@/store/utils/mode";
 import {parseTypeScriptFile} from "@/store/typescript/utils";
 import {EditorState, TsFile} from "@/store/types";
-import {initLanguageService} from "@/store/typescript/initLanguageService";
+import ts from 'typescript';
 
 export const fileTypes = {
     JAVASCRIPT: 'JAVASCRIPT',
     TYPESCRIPT: 'TYPESCRIPT',
     HTML: 'HTML',
 };
+
+export enum Panel {
+    ACTIONS_PANEL = 1,
+    CODE
+}
 
 export const extensionToType: Record<string, string> = {
     js: fileTypes.JAVASCRIPT,
@@ -44,6 +49,7 @@ function getInitialState(): EditorState {
                 type: 'ts',
                 tree,
                 selectedNode: tree,
+                selectableNodes: [],
             },
             'index.html': {
                 type: 'html',
@@ -60,7 +66,6 @@ function getInitialState(): EditorState {
         }
     };
 }
-
 
 
 export function getStore() {
@@ -84,8 +89,7 @@ export function getStore() {
                 }, {} as Record<string, TsFile>);
 
                 // state.languageService = initLanguageService(files);
-
-                state.selectedFileName = files[11].path;
+                state.selectedFileName = files.find(f=>f.path.includes('AddUserDialog.test.tsx'))!.path;
             },
             async executeAction(state, action) {
                 return editorActions.execute(action, state, store);
@@ -118,6 +122,11 @@ export function getStore() {
             },
             selectedNode(state, {selectedFile}) {
                 return selectedFile.selectedNode;
+            },
+            selectableNodes(state, {selectedFile}) {
+                const entries = (selectedFile.selectableNodes || []).map((value: ts.Node, key: number) => ([value, key.toString()]));
+                return new WeakMap(entries);
+
             },
             html(state, {selectedFile, selectedFileType}) {
                 if (selectedFileType === fileTypes.HTML) {

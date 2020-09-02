@@ -6,25 +6,35 @@ import {transformVisit, tsAstRename} from "@/store/typescript/transform";
 import {EditorJasmine} from "@/store/typescript/jasmine/jasmine_utils";
 
 export function parseTypeScriptFile(code: string, file: string) {
-    const r = ts.createSourceFile(
+    return ts.createSourceFile(
         file,
         code,
         ts.ScriptTarget.ES2015,
         /*setParentNodes */ true
     );
-
-    return r;
 }
 
 // function logElement(node) {
 //     console.log(kindMap[node.kind], node);
 // }
 
+function stripRanges<T extends ts.Node>(node: T) {
+    node.pos = -1;
+    node.end = -1;
+
+    ts.forEachChild(node, stripRanges);
+    return node;
+}
+
 export class EditorTypeScript {
     readonly jasmine = new EditorJasmine(this.state, this.utils);
 
     constructor(private readonly state: EditorState,
                 private readonly utils: EditorUtils) {
+    }
+
+    stripRanges<T extends ts.Node>(node: T) {
+        return stripRanges(node);
     }
 
 
@@ -41,6 +51,7 @@ export class EditorTypeScript {
     get tree() {
         return this.file.tree;
     }
+
     set tree(tree) {
         this.file.tree = tree;
     }
@@ -49,6 +60,10 @@ export class EditorTypeScript {
         if (node) {
             this.file.selectedNode = node;
         }
+    }
+
+    setSelectableNodes(nodes: ts.Node[]) {
+        this.file.selectableNodes = nodes;
     }
 
     generate() {
@@ -71,8 +86,9 @@ export class EditorTypeScript {
         });
     }
 
-    transformVisit( callback: (node: ts.Node, context: ts.TransformationContext) => ts.Node){
-        this.tree = transformVisit(this.tree,  callback)
+    transformVisit(callback: (node: ts.Node, context: ts.TransformationContext) => ts.Node) {
+        this.tree = transformVisit(this.tree, callback);
+        // eslint-disable-next-line no-debugger
     }
 
     goNext() {
@@ -112,6 +128,33 @@ export class EditorTypeScript {
             node.modifiers.push(ts.createToken(ts.SyntaxKind.ReadonlyKeyword));
         }
     }
+
+    goToNext(selector: string) {
+        // eslint-disable-next-line no-debugger
+        debugger;
+        const nodes = tsquery(this.utils.ts.tree, selector);
+
+        if (nodes.length === 0) {
+            return;
+        }
+
+        this.setSelectableNodes(nodes);
+
+
+        for (let i = 0; i < nodes.length; i++) {
+            const prevIndex = (nodes.length + i - 1) % nodes.length;
+            console.log(prevIndex);
+            if (nodes[prevIndex] === this.node) {
+
+                this.selectNode(nodes[i]);
+                return;
+            }
+        }
+
+
+        this.selectNode(nodes[0]);
+    }
+
 
     goPrev() {
         const node = this.node;
@@ -170,6 +213,14 @@ export class EditorTypeScript {
 
     getIdentifiers() {
         return [...(this.tree as any).identifiers.values()].map(key => ({key, used: 0}));
+    }
+
+    transformNode<T extends ts.Node>(a: T, callback: (b: T) => T) {
+        this.transformVisit((node) => node === a ? callback(a) : node);
+    }
+
+    replaceNode(a: ts.Node, b: ts.Node) {
+        this.transformVisit((node) => node === a ? b : node);
     }
 }
 

@@ -1,4 +1,4 @@
-import {fileTypes} from "@/store/store";
+import {fileTypes, Panel} from "@/store/store";
 import {tsPredicates} from "@/store/typescript/predicates";
 import {EditorAction} from "@/store/types";
 import {Identifier} from 'typescript';
@@ -148,6 +148,26 @@ export const jsActions: EditorAction[] = [
                 name = await utils.input.getText('', utils.ts.getIdentifiers());
             }
             utils.ts.jumpToIdentifier(name);
+        }
+    },
+    {
+        key: 'quickJump',
+        type: fileTypes.TYPESCRIPT,
+        generator(utils) {
+            return (utils.ts.file.selectableNodes || []).map((node, i) => {
+                return {
+                    key: 'quickAction ' + i,
+                    shortcut: i.toString(),
+                    mode: '*',
+                    type: '*',
+                    panel: Panel.CODE,
+                    handler() {
+                        utils.ts.selectNode(node);
+                        utils.ts.setSelectableNodes([]);
+                    }
+                };
+
+            });
         }
     }
 ];

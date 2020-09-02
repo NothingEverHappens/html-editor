@@ -47,7 +47,8 @@ export interface TsFile {
     type: 'ts',
     path: string;
     tree: SourceFile,
-    selectedNode: ts.Node
+    selectedNode: ts.Node,
+    selectableNodes: ts.Node[],
     code: string;
 }
 
