@@ -1,4 +1,4 @@
-import ts, {PropertyDeclaration} from 'typescript';
+import ts from 'typescript';
 import {tsquery} from '@phenomnomnominal/tsquery';
 import {EditorState, TsFile} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
@@ -106,7 +106,7 @@ export class EditorTypeScript {
     }
 
     flipReadonly() {
-        const node = this.node as unknown as PropertyDeclaration as any;
+        const node = this.node as unknown as ts.PropertyDeclaration as any;
         if (!node.modifiers) {
             node.modifiers = [];
         }

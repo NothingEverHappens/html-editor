@@ -1,7 +1,7 @@
 import {fileTypes, Panel} from "@/store/store";
 import {tsPredicates} from "@/store/typescript/predicates";
 import {EditorAction} from "@/store/types";
-import ts, {Identifier} from 'typescript';
+import ts from 'typescript';
 
 
 export const jsActions: EditorAction[] = [
@@ -43,7 +43,7 @@ export const jsActions: EditorAction[] = [
         shortcut: 'r',
         async handler(utils, action, name) {
             if (!name) {
-                name = await utils.input.getText((utils.ts.node as Identifier).text, utils.stats.getTagNames());
+                name = await utils.input.getText((utils.ts.node as ts.Identifier).text, utils.stats.getTagNames());
             }
             utils.ts.rename(name);
         }

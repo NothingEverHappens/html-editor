@@ -1,4 +1,4 @@
-import ts, {SourceFile} from 'typescript';
+import ts from 'typescript';
 import {EditorMode} from './utils/mode';
 import {EditorUtils} from "@/store/utils/utils";
 import {LanguageService} from "@/store/typescript/initLanguageService";
@@ -46,7 +46,7 @@ export interface HtmlFile {
 export interface TsFile {
     type: 'ts',
     path: string;
-    tree: SourceFile,
+    tree: ts.SourceFile,
     selectedNode: ts.Node,
     selectableNodes: ts.Node[],
     code: string;
