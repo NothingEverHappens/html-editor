@@ -1,7 +1,7 @@
 import {fileTypes, Panel} from "@/store/store";
 import {tsPredicates} from "@/store/typescript/predicates";
 import {EditorAction} from "@/store/types";
-import {Identifier} from 'typescript';
+import ts, {Identifier} from 'typescript';
 
 
 export const jsActions: EditorAction[] = [
@@ -41,7 +41,6 @@ export const jsActions: EditorAction[] = [
         key: 'rename',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'r',
-        displayPredicate: tsPredicates.nodeKind(['Identifier']),
         async handler(utils, action, name) {
             if (!name) {
                 name = await utils.input.getText((utils.ts.node as Identifier).text, utils.stats.getTagNames());
@@ -53,7 +52,7 @@ export const jsActions: EditorAction[] = [
         key: 'flipReadonly',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'r',
-        displayPredicate: tsPredicates.nodeKind(['PropertyDeclaration']),
+        displayPredicate: tsPredicates.nodeKind(ts.SyntaxKind.PropertyDeclaration),
         async handler(utils) {
             utils.ts.flipReadonly();
         }
@@ -62,7 +61,7 @@ export const jsActions: EditorAction[] = [
         key: 'flip boolean',
         type: fileTypes.TYPESCRIPT,
         shortcut: '~',
-        displayPredicate: tsPredicates.nodeKind(['TrueKeyword', 'FalseKeyword']),
+        displayPredicate: tsPredicates.nodeKind(ts.SyntaxKind.TrueKeyword, ts.SyntaxKind.FalseKeyword),
         async handler(utils) {
             utils.ts.flipReadonly();
         }
@@ -71,7 +70,7 @@ export const jsActions: EditorAction[] = [
         key: 'return',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'r',
-        displayPredicate: tsPredicates.nodeKind(['FunctionDeclaration']),
+        displayPredicate: tsPredicates.nodeKind(ts.SyntaxKind.FunctionDeclaration),
         async handler(utils) {
             utils.ts.jumpToReturn();
         }

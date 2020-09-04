@@ -1,14 +1,10 @@
-import {kindMap} from "@/components/editors/ts/components/kindMap";
 import ts from 'typescript';
 import {EditorUtils} from "@/store/utils/utils";
 
 export const tsPredicates = {
-    nodeKind(kinds: string[]) {
-        kinds = ([] as string[]).concat(kinds);
+    nodeKind(...kinds: ts.SyntaxKind[]) {
         return (utils: EditorUtils) => {
-            const kind = kindMap[utils.ts.node.kind];
-            return kinds.includes(kind)
+            return kinds.includes(utils.ts.node.kind)
         }
     }
-
 };

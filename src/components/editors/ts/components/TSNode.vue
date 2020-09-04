@@ -15,10 +15,24 @@
 
 <script type="text/jsx">
     import Unknown from "@/components/editors/ts/components/Unknown";
-    import {kindMap} from "@/components/editors/ts/components/kindMap";
     import {mapGetters, mapMutations} from "vuex";
     import {h} from "vue";
     import {getVariableDeclarationKind} from "tsutils";
+    import ts from 'typescript';
+
+
+    function getNodeKind(kind) {
+        const result = ts.SyntaxKind[kind];
+        console.assert(result);
+        if (!result.startsWith('First') && !result.startsWith('Last')) {
+            return result;
+        }
+
+        const node = Object.entries(ts.SyntaxKind).find(([, b]) => kind === b)[0];
+
+        console.assert(node);
+        return node;
+    }
 
     function simpleNode(name, callback, wrapper = 'span') {
         return function (props) {
@@ -29,15 +43,6 @@
         };
     }
 
-
-    function simpleText(text) {
-        return function (props) {
-            if (typeof text === 'function') {
-                text = text(props.node);
-            }
-            return h('span', null, text);
-        }
-    }
 
     const declarationKindMap = {
         [0]: 'var',
@@ -70,7 +75,7 @@
         AmpersandAmpersandToken: () => '&&',
         DebuggerStatement: () => 'debugger',
         ColonToken: () => ':',
-        NoSubstitutionTemplateLiteral: simpleText(node => `\`${node.text}\``),
+        NoSubstitutionTemplateLiteral: node => `\`${node.text}\``,
         FalseKeyword: () => 'false',
         PrivateKeyword: () => 'private',
         ReadonlyKeyword: () => 'readonly ',
@@ -255,6 +260,13 @@
         },
 
 
+        JSDocTypeExpression: function ({node}) {
+            console.assert(node);
+            console.assert(false);
+            return <>
+                {'$jsdoctype&'}
+            </>;
+        },
         SpreadAssignment: function ({node}) {
             return <>
                 {'...'}
@@ -542,7 +554,7 @@
         Parameter: function ({node}) {
             console.assert(node.name);
             return <>
-              <TSNode node={node.name}/>
+                <TSNode node={node.name}/>
                 {node.type ? [
                     ': ',
                     <TSNode node={node.type}/>
@@ -819,7 +831,7 @@
                 return Array.isArray(this.node);
             },
             nodeName() {
-                return kindMap[this.node.kind] || this.node.constructor.name;
+                return this.node.kind ? getNodeKind(this.node.kind) : this.node.constructor.name;
             },
             component() {
                 return components[this.nodeName] || components.Unknown;
@@ -861,6 +873,7 @@
   .selected:after {
     content: "🦊"
   }
+
   .selected,
   .selected * {
     background: rgba(254, 255, 10, 20);

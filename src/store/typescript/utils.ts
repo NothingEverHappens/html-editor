@@ -15,27 +15,13 @@ export function parseTypeScriptFile(code: string, file: string) {
     );
 }
 
-// function logElement(node) {
-//     console.log(kindMap[node.kind], node);
-// }
 
-function stripRanges<T extends ts.Node>(node: T) {
-    node.pos = -1;
-    node.end = -1;
-
-    ts.forEachChild(node, stripRanges);
-    return node;
-}
 
 export class EditorTypeScript {
     readonly jasmine = new EditorJasmine(this.state, this.utils);
 
     constructor(private readonly state: EditorState,
                 private readonly utils: EditorUtils) {
-    }
-
-    stripRanges<T extends ts.Node>(node: T) {
-        return stripRanges(node);
     }
 
 
