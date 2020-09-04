@@ -57,13 +57,16 @@
         },
         mounted() {
             this._keyListener = function (e) {
-                const key = (e.metaKey ? '⌘' : '') + (e.ctrlKey ? '^' : '') + e.key;
+                const key = (e.metaKey ? '⌘' : '') +
+                    (e.ctrlKey ? '^' : '') +
+                    (e.shiftKey ? '⇧' : '') +
+                    e.key;
 
                 const action = this.actions.find(a => {
-
                     if (typeof a.shortcut === 'string') {
                         return a.shortcut === key;
                     }
+
                     if (Array.isArray(a.shortcut)) {
                         return a.shortcut.includes(key);
                     }

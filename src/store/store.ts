@@ -89,7 +89,9 @@ export function getStore() {
                 }, {} as Record<string, TsFile>);
 
                 // state.languageService = initLanguageService(files);
-                state.selectedFileName = files.find(f=>f.path.includes('AddUserDialog.test.tsx'))!.path;
+                state.selectedFileName = 'store/utils/input.ts';
+                // files[0].path;
+                //files.find(f=>f.path.includes('AddUserDialog.test.tsx'))!.path;
             },
             async executeAction(state, action) {
                 return editorActions.execute(action, state, store);
@@ -136,6 +138,9 @@ export function getStore() {
             },
             selectedFileType(state) {
                 return extensionToType[state.selectedFileName.match(/\.(\w+)$/)![1]];
+            },
+            selectedFileName(state) {
+                return state.selectedFileName;
             },
             files(state) {
                 return Object.entries(state.files).map(([name, file]) => {

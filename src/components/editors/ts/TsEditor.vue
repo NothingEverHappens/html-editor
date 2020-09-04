@@ -31,7 +31,9 @@
 
   .InterfaceDeclaration,
   .FunctionDeclaration,
-  .CallExpression,
+  .ClassDeclaration,
+  .Constructor,
+  .Array > .CallExpression,
   .SourceFile > .Block > .ExpressionStatement {
     display: block;
     margin-top: 20px;
@@ -49,6 +51,7 @@
 
   .ObjectLiteralExpression > .Array > *,
   .ArrayLiteralExpression > .Array > *,
+  .ClassDeclaration > .Array > *,
   .PropertySignature {
     margin-left: 20px;
     display: block;
@@ -57,7 +60,7 @@
   .ImportDeclaration,
   .PropertySignature,
   .VariableStatement,
-  .CallExpression,
+  .Array > .CallExpression,
   .PropertyAssignment {
     display: block
   }
@@ -65,10 +68,11 @@
   .VariableStatement:after {
     content: ";";
   }
+
   .PropertyAssignment:not(:last-child):after,
+  .Parameter:not(:last-child):after,
   .VariableDeclarationList > .Array > .VariableDeclaration:not(:last-child):after,
-  .CallExpression >  .Array > *:not(:last-child):after
-  {
+  .CallExpression > .Array > *:not(:last-child):after {
     content: ", ";
   }
 
@@ -77,7 +81,8 @@
   }
 
   .ArrowFunction > .Block,
-  .FunctionDeclaration > .Block {
+  .FunctionDeclaration > .Block
+  ReturnStatement {
     display: inline !important;
   }
 
@@ -90,6 +95,7 @@
     display: block;
     margin-left: 20px;
   }
+
   .TrueKeyword,
   .FalseKeyword,
   .NumericLiteral {
@@ -102,8 +108,6 @@
   .JsxSelfClosingElement > .Identifier {
     color: #400098;
   }
-
-
 
 
 </style>

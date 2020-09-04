@@ -6,6 +6,7 @@
         <Shortcuts></Shortcuts>
       </div>
       <div class="editor" style="flex: 2">
+        {{selectedFileName}}
         <HtmlEditor v-if="selectedFileType === fileTypes.HTML" :node="tree"></HtmlEditor>
         <TsEditor v-if="selectedFileType === fileTypes.TYPESCRIPT" :tree="tree"></TsEditor>
       </div>
@@ -28,7 +29,7 @@
         name: "Editor",
 
         computed: {
-            ...mapGetters(['tree', 'selectedFileType'])
+            ...mapGetters(['tree', 'selectedFileType', 'selectedFileName'])
         },
         methods: {
             ...mapMutations(['executeAction'])
@@ -38,7 +39,6 @@
         created() {
             // console.log('hi');
             this.fileTypes = fileTypes;
-            this.executeAction({type: 'jasmine'});
             // this.executeAction({type: 'nextDescribe'});
             // this.executeAction({type: 'jasmine'});
             // this.executeAction({type: 'goNext', tag: 'div'});

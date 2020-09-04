@@ -1,7 +1,7 @@
 import {EditorAutocompleteOption, EditorState} from "@/store/types";
 
 export interface EditorMode {
-    type: 'NORMAL' | 'UPDATE_CONTENT' | 'JASMINE';
+    type: 'NORMAL' | 'UPDATE_CONTENT' | 'JASMINE' | 'JUMP';
     focus: boolean;
     filter?: string;
 }
@@ -23,6 +23,10 @@ export const mode: Record<string, EditorMode> = {
     },
     JASMINE: {
         type: 'JASMINE',
+        focus: false,
+    },
+    JUMP: {
+        type: 'JUMP',
         focus: false,
     },
 };

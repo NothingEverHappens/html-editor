@@ -269,7 +269,7 @@
         ArrayLiteralExpression: function ({node}) {
             return <>
                 {'['}
-                {node.elements && <TSNode node={node.elements}/>}]
+                {node.elements && <TSNode node={node.elements}/>}
                 {']'}
             </>;
         },
@@ -369,6 +369,18 @@
                 '}',
             ]);
         },
+        GetAccessor: function ({node}) {
+            console.assert(node.name);
+            console.assert(node.body);
+            return <>
+                {'get '}
+                <TSNode node={node.name}/>
+                {'('}
+                <TSNode node={node.parameters}/>
+                {')'}
+                <TSNode node={node.body}/>
+            </>;
+        },
 
 
         ConditionalExpression: function ({node}) {
@@ -376,13 +388,13 @@
             console.assert(node.whenFalse);
             console.assert(node.whenTrue);
 
-            return <div>
+            return <>
                 <TSNode node={node.condition}/>{
                 '?'
             }<TSNode node={node.whenTrue}/>{
                 ':'
             }<TSNode node={node.whenFalse}/>
-            </div>;
+            </>;
         },
 
         ComputedPropertyName: function ({node}) {
@@ -410,18 +422,16 @@
         },
 
 
-        ClassDeclaration: function (props) {
-            console.assert(props.node.members);
-            return h('div', null, [
-                props.node.jsDoc && h(TSNode, {node: props.node.jsDoc}),
-                'class ',
-                props.node.name ? h(TSNode, {node: props.node.name}) : '',
-                props.node.heritageClauses && h(TSNode, {node: props.node.heritageClauses}),
-                ' {',
-                h('div', {class: 'p20'}, [h(TSNode, {node: props.node.members})]),
-                '}',
-
-            ]);
+        ClassDeclaration: function ({node}) {
+            return <>
+                {node.jsDoc && <TSNode node={node.jsDoc}/>}
+                {'class '}
+                {node.name && <TSNode node={node.name}/>}
+                {node.heritageClauses && <TSNode node={node.heritageClauses}/>}
+                {' {'}
+                <TSNode node={node.members}/>
+                {'} '}
+            </>;
         },
 
 
@@ -515,34 +525,33 @@
         },
 
 
-        Constructor: function (props) {
-            console.assert(props.node.parameters);
-            console.assert(props.node.body);
-            return h('div', null, [
-                props.node.modifiers && h(TSNode, {node: props.node.modifiers}),
-                'constructor (',
-                h(TSNode, {node: props.node.parameters}),
-                props.node.typeParameters && h(TSNode, {node: props.node.typeParameters}),
-                ') {',
-                props.node.body && h(TSNode, {node: props.node.body}),
-                '}',
-            ]);
+        Constructor: function ({node}) {
+            console.assert(node.parameters);
+            console.assert(node.body);
+
+            return <>
+                {node.modifiers && <TSNode node={node.modifiers}/>}
+                {'constructor('}
+                <TSNode node={node.parameters}/>
+                {node.typedParameters && <TSNode node={node.parameters}/>}
+                {') '}
+                {node.body && <TSNode node={node.body}/>}
+            </>;
         },
 
         Parameter: function ({node}) {
             console.assert(node.name);
-            return <span>
+            return <>
               <TSNode node={node.name}/>
                 {node.type ? [
                     ': ',
                     <TSNode node={node.type}/>
                 ] : null}
                 {node.initializer ? [
-                    '= $init$ ',
+                    '= ',
                     <TSNode node={node.initializer}/>
                 ] : null}
-
-            </span>;
+            </>;
         },
 
         PrefixUnaryExpression: function (props) {
@@ -849,9 +858,12 @@
     position: relative;
   }
 
+  .selected:after {
+    content: "🦊"
+  }
   .selected,
   .selected * {
-    background: rgba(254, 255, 10, 0);
+    background: rgba(254, 255, 10, 20);
     outline: 1px #ddd solid;
   }
 

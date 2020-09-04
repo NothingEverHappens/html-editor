@@ -4,6 +4,7 @@ import {EditorState, TsFile} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
 import {transformVisit, tsAstRename} from "@/store/typescript/transform";
 import {EditorJasmine} from "@/store/typescript/jasmine/jasmine_utils";
+import {tsq, Tsq} from "@/tsools/query";
 
 export function parseTypeScriptFile(code: string, file: string) {
     return ts.createSourceFile(
@@ -57,6 +58,7 @@ export class EditorTypeScript {
     }
 
     selectNode(node: ts.Node) {
+        console.assert(!Array.isArray(node));
         if (node) {
             this.file.selectedNode = node;
         }
@@ -129,6 +131,30 @@ export class EditorTypeScript {
         }
     }
 
+    goToNextQuery(query: Tsq) {
+        const nodes = query.fromNode(this.utils.ts.tree);
+
+        if (nodes.length === 0) {
+            return;
+        }
+
+        this.setSelectableNodes(nodes);
+
+
+        for (let i = 0; i < nodes.length; i++) {
+            const prevIndex = (nodes.length + i - 1) % nodes.length;
+            console.log(prevIndex);
+            if (nodes[prevIndex] === this.node) {
+
+                this.selectNode(nodes[i]);
+                return;
+            }
+        }
+
+
+        this.selectNode(nodes[0]);
+    }
+
     goToNext(selector: string) {
         // eslint-disable-next-line no-debugger
         debugger;
@@ -196,6 +222,17 @@ export class EditorTypeScript {
         }
     }
 
+
+    jumpForwardQuery(query: Tsq) {
+        const next = query(tsq.after(this.node).fromNode(this.tree))[0] || query.fromNode(this.tree)[0];
+        this.selectNode(next);
+    }
+
+    jumpBackQuery(query: Tsq) {
+        const next = query(tsq.before(this.node).fromNode(this.tree)).slice(-1)[0] || query.fromNode(this.tree).slice(-1)[0];
+        this.selectNode(next);
+    }
+
     jumpToSelector(selector: string) {
         const nodes = tsquery(this.utils.ts.tree, selector);
         const next = (nodes.indexOf(this.node) + 1) % (nodes.length);
@@ -221,6 +258,17 @@ export class EditorTypeScript {
 
     replaceNode(a: ts.Node, b: ts.Node) {
         this.transformVisit((node) => node === a ? b : node);
+        return b;
+    }
+
+    getContainingArrayPropName() {
+        const result = Object.entries(this.node.parent)
+            .filter(([key, value]) => Array.isArray(value) && value.includes(this.node))
+            .map(([key]) => {
+                return key;
+            });
+
+        return result[0];
     }
 }
 

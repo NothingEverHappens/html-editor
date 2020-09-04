@@ -11,6 +11,8 @@ import {EditorAction, EditorActionDefinition, EditorState} from "@/store/types";
 import {Store} from "vuex";
 import {filesEditorActions} from "@/store/actions/files";
 import {jasmineEditorActions} from "@/store/typescript/jasmine/jasmine_actions";
+import {jumpEditorActions} from "@/store/typescript/jump/jump_actions";
+import {manipulateEditorActions} from "@/store/typescript/manipulate/manipulate_actions";
 
 
 function getDisplayShortcut(shortcut: string | string[]) {
@@ -117,7 +119,9 @@ export const editorActions = new Actions()
     .withActions(inputActions)
     .withActions(jsActions)
     .withActions(filesEditorActions)
-    .withActions(jasmineEditorActions);
+    .withActions(jumpEditorActions)
+    .withActions(jasmineEditorActions)
+    .withActions(manipulateEditorActions);
 
 
 /**

@@ -7,14 +7,13 @@ export class EditorInput {
 
     constructor(private readonly state: EditorState,
                 private readonly utils: EditorUtils) {
-
     }
 
     get value() {
         return this.state.filter;
     }
 
-    getText(defaultValue = '', options: EditorAutocompleteOption[] =[]): Promise<string> {
+    getText(defaultValue = '', options: EditorAutocompleteOption[] = []): Promise<string> {
         return new Promise((resolve) => {
                 const previousMode = this.state.mode;
                 const modeArg = this.state.modeArg;

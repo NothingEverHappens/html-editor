@@ -1,5 +1,7 @@
 import {EditorAction} from "@/store/types";
 import {mode} from "@/store/utils/mode";
+import {queries} from "@/store/typescript/jasmine/queries";
+import {jasminePredicates} from "@/store/typescript/jasmine/jasmine_predicates";
 
 export const jasmineEditorActions: EditorAction[] = [
     {
@@ -35,21 +37,22 @@ export const jasmineEditorActions: EditorAction[] = [
         type: '*',
         mode: mode.JASMINE,
         handler(utils) {
-            utils.ts.goToNext('CallExpression > Identifier');
+            utils.ts.goToNextQuery(queries.describe);
         }
-    },  {
+    }, {
         key: 'nextIt',
         shortcut: 'y',
         type: '*',
         mode: mode.JASMINE,
         handler(utils) {
-            utils.ts.goToNext('CallExpression > Identifier[name="it"]');
+            utils.ts.goToNextQuery(queries.it);
         }
     },
     {
         key: 'update description',
         shortcut: 'w',
         type: '*',
+        displayPredicate: jasminePredicates.selectedNodeMatchesQuery(queries.closestDescribe),
         mode: mode.JASMINE,
         async handler(utils) {
             utils.ts.jasmine.getDescribeText();
@@ -57,6 +60,17 @@ export const jasmineEditorActions: EditorAction[] = [
             utils.ts.jasmine.renameDescribe(name);
         }
     },
+    {
+        key: 'testBody',
+        shortcut: 'w',
+        type: '*',
+        displayPredicate: jasminePredicates.selectedNodeMatchesQuery(queries.closestIt),
+        mode: mode.JASMINE,
+        async handler(utils) {
+            utils.ts.goToNextQuery(queries.closestItArrowFunctionBody);
+        }
+    },
+
     {
         key: 'exit jasmine',
         shortcut: 'Escape',

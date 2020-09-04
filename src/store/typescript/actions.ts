@@ -68,45 +68,6 @@ export const jsActions: EditorAction[] = [
         }
     },
     {
-        key: 'jumpToClass',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 'c',
-        async handler(utils) {
-            utils.ts.jumpToSelector('ClassDeclaration');
-        }
-    },
-    {
-        key: 'jumpToMethod',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 'm',
-        async handler(utils) {
-            utils.ts.jumpToSelector('MethodDeclaration');
-        }
-    }, {
-        key: 'jumpToJsx',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 't',
-        async handler(utils) {
-            utils.ts.jumpToSelector('JsxOpeningElement,JsxSelfClosingElement');
-        }
-    },
-    {
-        key: 'jumpToProperty',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 'p',
-        async handler(utils) {
-            utils.ts.jumpToSelector('PropertyDeclaration');
-        }
-    },
-    {
-        key: 'jumpToBlock',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 'b',
-        async handler(utils) {
-            utils.ts.jumpToSelector('Block');
-        }
-    },
-    {
         key: 'return',
         type: fileTypes.TYPESCRIPT,
         shortcut: 'r',
@@ -137,17 +98,6 @@ export const jsActions: EditorAction[] = [
         shortcut: 'u',
         handler(utils) {
             utils.ts.findOutType();
-        }
-    },
-    {
-        key: 'goToIdentifier',
-        type: fileTypes.TYPESCRIPT,
-        shortcut: 'i',
-        async handler(utils, action, name: any) {
-            if (!name) {
-                name = await utils.input.getText('', utils.ts.getIdentifiers());
-            }
-            utils.ts.jumpToIdentifier(name);
         }
     },
     {

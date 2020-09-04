@@ -6,8 +6,9 @@ export const metaEditorActions: EditorAction[]  = [
     {
         key: 'Back to normal mode',
         mode: '*',
+        type: '*',
         displayPredicate: predicates.not(predicates.isMode(mode.NORMAL)),
-        shortcut: 'Escape',
+        shortcut: [';', 'Escape'],
         handler(utils) {
             utils.mode.setMode(mode.NORMAL);
         }

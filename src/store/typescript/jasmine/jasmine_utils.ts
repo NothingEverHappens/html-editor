@@ -2,6 +2,7 @@ import {EditorState} from "@/store/types";
 import {EditorUtils} from "@/store/utils/utils";
 
 import ts from 'typescript';
+import {queries} from "@/store/typescript/jasmine/queries";
 
 export class EditorJasmine {
 
@@ -47,43 +48,26 @@ export class EditorJasmine {
             && node.expression.text === 'describe';
     }
 
-    getClosestDescribe(): ts.CallExpression {
-        const result = this.findClosestDescribe();
-        if (!result) {
-            throw 'describe not found';
-        }
 
-        return result;
+    hasClosestDescribe() {
+        return !!this.getClosestDescribe();
     }
 
-    findClosestDescribe(): ts.CallExpression | undefined {
-        let node = this.utils.ts.node;
-        while (node && !this.isDescribe(node)) {
-            node = node.parent;
-            if (!node) {
-                return;
-            }
-        }
-
-        return node as ts.CallExpression;
+    getClosestDescribe() {
+        return queries.closestDescribe.singleNode(this.utils.ts.node);
     }
+
 
     getClosestDescribeDescription() {
-        const describe = this.getClosestDescribe();
-
-        const firstArg = describe.arguments[0];
-        if (ts.isStringLiteral(firstArg)) {
-            return firstArg;
-        }
-        throw 'cannot find closese describe';
+        return queries.closestDescribeDescription.singleNode(this.utils.ts.node);
     }
 
     getDescribeText() {
-        return this.getClosestDescribeDescription().text;
+        return (this.getClosestDescribeDescription() as ts.Identifier).text;
     }
 
     renameDescribe(name: string) {
-        this.utils.ts.replaceNode(this.getClosestDescribeDescription(), ts.createStringLiteral(name));
+        this.utils.ts.selectNode(this.utils.ts.replaceNode(this.getClosestDescribeDescription(), ts.createStringLiteral(name)));
     }
 
     addIt() {
@@ -101,11 +85,7 @@ export class EditorJasmine {
             ])
         );
 
-
-        const closestDescribe = this.getClosestDescribe();
-        const arrowFunction = closestDescribe.arguments[1] as ts.ArrowFunction;
-        const body = arrowFunction.body as ts.Block;
-        console.assert(ts.isBlock(body)); // Could be an expression
+        const body = queries.closestDescribeArrowFunctionBody.singleNode(this.utils.ts.node) as ts.Block;
 
         this.utils.ts.transformNode(body, (node: ts.Block) => {
             return ts.updateBlock(node, [...node.statements, newIt])
